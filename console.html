@@ -1,0 +1,3478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BailiwickQuikFix Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#070d17;overflow:hidden;}
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-thumb{background:#1c2f4a;border-radius:2px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    input,select,textarea{font-family:inherit;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>var useState=React.useState,useRef=React.useRef,useEffect=React.useEffect,useCallback=React.useCallback;</script>
+  <script>
+/* ═══════════════════════════════════════════════════════════
+   BAILIWICKQUIKFIX CONSOLE  v2  —  Owner / Ops Dashboard
+   + Tooltips on every element  + Built-in User Guide tab
+═══════════════════════════════════════════════════════════ */
+const font = "'DM Sans', -apple-system, sans-serif";
+const C = {
+  bg: "#070d17",
+  surf: "#0c1524",
+  card: "#101e31",
+  lift: "#152540",
+  border: "#1c2f4a",
+  borderL: "#223856",
+  text: "#e8f2ff",
+  sub: "#7baac8",
+  muted: "#3d6080",
+  red: "#d32f2f",
+  redL: "#ff5252",
+  redBg: "#1a0808",
+  green: "#22c55e",
+  greenBg: "#052510",
+  amber: "#f59e0b",
+  amberBg: "#1a1000",
+  blue: "#3b82f6",
+  blueBg: "#071428",
+  purple: "#a78bfa",
+  purpleBg: "#12082a",
+  qfx: "#10b981"
+};
+
+/* ── Seed data ── */
+const SEED = {
+  jobs: [{
+    id: "BWK-9988E",
+    customer: "Carlos M.",
+    zip: "75201",
+    fix: "Ceiling fan install",
+    type: "electrical",
+    urgency: "routine",
+    status: "matched",
+    rate: 125,
+    proId: 2,
+    confidence: 96,
+    quikfix: true,
+    tier: "auto",
+    ts: "2:31 PM",
+    eta: 24
+  }, {
+    id: "BWK-9981D",
+    customer: "Amy W.",
+    zip: "37205",
+    fix: "Possible gas smell",
+    type: "other",
+    urgency: "emergency",
+    status: "escalated",
+    rate: 0,
+    proId: null,
+    confidence: 42,
+    quikfix: false,
+    tier: "escalate",
+    ts: "2:18 PM",
+    eta: 0
+  }, {
+    id: "BWK-9972B",
+    customer: "Derek M.",
+    zip: "78701",
+    fix: "Drywall patch",
+    type: "drywall",
+    urgency: "routine",
+    status: "review",
+    rate: 69,
+    proId: 4,
+    confidence: 88,
+    quikfix: false,
+    tier: "review",
+    ts: "2:02 PM",
+    eta: 31
+  }, {
+    id: "BWK-9961F",
+    customer: "Linda R.",
+    zip: "80205",
+    fix: "Disposal reset",
+    type: "plumbing",
+    urgency: "urgent",
+    status: "enroute",
+    rate: 65,
+    proId: 1,
+    confidence: 91,
+    quikfix: true,
+    tier: "auto",
+    ts: "1:45 PM",
+    eta: 18
+  }, {
+    id: "BWK-9950C",
+    customer: "James T.",
+    zip: "75204",
+    fix: "Outlet replacement",
+    type: "electrical",
+    urgency: "routine",
+    status: "complete",
+    rate: 59,
+    proId: 2,
+    confidence: 94,
+    quikfix: true,
+    tier: "auto",
+    ts: "10:30 AM",
+    eta: 22
+  }, {
+    id: "BWK-9945A",
+    customer: "Sarah K.",
+    zip: "78704",
+    fix: "Faucet repair",
+    type: "plumbing",
+    urgency: "routine",
+    status: "complete",
+    rate: 89,
+    proId: 1,
+    confidence: 97,
+    quikfix: true,
+    tier: "auto",
+    ts: "9:14 AM",
+    eta: 14
+  }, {
+    id: "BWK-9940D",
+    customer: "Priya N.",
+    zip: "78702",
+    fix: "Toilet running",
+    type: "plumbing",
+    urgency: "routine",
+    status: "complete",
+    rate: 79,
+    proId: 3,
+    confidence: 95,
+    quikfix: true,
+    tier: "auto",
+    ts: "8:55 AM",
+    eta: 21
+  }],
+  pros: [{
+    id: 1,
+    name: "Maria Santos",
+    trade: "Plumber",
+    status: "busy",
+    rating: 4.93,
+    jobs: 312,
+    zip: "78704",
+    trustScore: 98,
+    verified: true,
+    earnings: 1240
+  }, {
+    id: 2,
+    name: "James Okafor",
+    trade: "Electrician",
+    status: "online",
+    rating: 4.87,
+    jobs: 241,
+    zip: "75201",
+    trustScore: 96,
+    verified: true,
+    earnings: 980
+  }, {
+    id: 3,
+    name: "Devon Park",
+    trade: "Handyman",
+    status: "online",
+    rating: 4.76,
+    jobs: 189,
+    zip: "80204",
+    trustScore: 91,
+    verified: true,
+    earnings: 720
+  }, {
+    id: 4,
+    name: "Rosa Gutierrez",
+    trade: "Drywall Pro",
+    status: "offline",
+    rating: 4.95,
+    jobs: 156,
+    zip: "78701",
+    trustScore: 99,
+    verified: true,
+    earnings: 540
+  }, {
+    id: 5,
+    name: "Marcus Webb",
+    trade: "Plumber",
+    status: "online",
+    rating: 4.81,
+    jobs: 298,
+    zip: "75201",
+    trustScore: 94,
+    verified: true,
+    earnings: 1100
+  }, {
+    id: 6,
+    name: "Priya Nair",
+    trade: "Electrician",
+    status: "pending",
+    rating: 0,
+    jobs: 0,
+    zip: "78702",
+    trustScore: 62,
+    verified: false,
+    earnings: 0
+  }],
+  agents: [{
+    name: "Intake",
+    status: "active",
+    calls: 18,
+    latency: 0.4,
+    lastRun: "2:32 PM"
+  }, {
+    name: "Classification",
+    status: "active",
+    calls: 18,
+    latency: 0.9,
+    lastRun: "2:32 PM"
+  }, {
+    name: "Pricing",
+    status: "active",
+    calls: 18,
+    latency: 0.7,
+    lastRun: "2:32 PM"
+  }, {
+    name: "Dispatch",
+    status: "active",
+    calls: 16,
+    latency: 0.3,
+    lastRun: "2:30 PM"
+  }, {
+    name: "Comms",
+    status: "active",
+    calls: 34,
+    latency: 0.2,
+    lastRun: "2:31 PM"
+  }, {
+    name: "Payment",
+    status: "active",
+    calls: 12,
+    latency: 0.5,
+    lastRun: "1:52 PM"
+  }, {
+    name: "Human Review",
+    status: "waiting",
+    calls: 2,
+    latency: 0,
+    lastRun: "2:18 PM"
+  }, {
+    name: "Training",
+    status: "idle",
+    calls: 0,
+    latency: 0,
+    lastRun: "3:00 AM"
+  }, {
+    name: "Analytics",
+    status: "active",
+    calls: 1,
+    latency: 2.1,
+    lastRun: "2:00 PM"
+  }],
+  review: [{
+    id: "BWK-9972B",
+    customer: "Derek M.",
+    fix: "Drywall patch — possibly large",
+    reason: "Confidence 88% — scope unclear",
+    flags: ["scope_uncertain", "location_missing"],
+    transcript: "I have a big hole in my wall, like from a doorknob or something, maybe bigger, in the hallway",
+    aiRate: 69,
+    suggestedRate: 120
+  }, {
+    id: "BWK-9981D",
+    customer: "Amy W.",
+    fix: "Possible gas smell",
+    reason: "HAZARD — gas keyword detected",
+    flags: ["hazard", "emergency_override"],
+    transcript: "I came home and it kind of smells weird, maybe like rotten eggs? Not sure if it's gas",
+    aiRate: 150,
+    suggestedRate: 0
+  }],
+  metrics: {
+    today: {
+      jobs: 18,
+      revenue: 1420,
+      quikfixPct: 84,
+      avgEta: 19,
+      slaMetPct: 92,
+      reviewPct: 11,
+      cancelPct: 4
+    },
+    week: {
+      jobs: 112,
+      revenue: 9340,
+      quikfixPct: 81,
+      avgEta: 21,
+      slaMetPct: 89
+    },
+    ai: {
+      calls: 112,
+      avgLatency: 1.8,
+      confidence: 87,
+      schemaValid: 99.1,
+      rateAccuracy: 94.6
+    }
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
+   TOOLTIP SYSTEM — overlay, within margins, three-section
+═══════════════════════════════════════════════════════════ */
+function Tooltip({
+  what,
+  needed,
+  matters,
+  side = "right"
+}) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const tipRef = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = e => {
+      if (!btnRef.current?.contains(e.target) && !tipRef.current?.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "relative",
+      display: "inline-flex",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    ref: btnRef,
+    onClick: e => {
+      e.stopPropagation();
+      setOpen(v => !v);
+    },
+    style: {
+      width: 16,
+      height: 16,
+      borderRadius: "50%",
+      border: `1px solid ${C.borderL}`,
+      background: open ? C.blue : C.lift,
+      color: open ? "#fff" : C.muted,
+      fontSize: 9,
+      fontWeight: 900,
+      cursor: "pointer",
+      fontFamily: font,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      transition: "all 0.15s",
+      lineHeight: 1,
+      marginLeft: 5
+    },
+    title: "Help"
+  }, "?"), open && /*#__PURE__*/React.createElement("div", {
+    ref: tipRef,
+    onClick: e => e.stopPropagation(),
+    style: {
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%,-50%)",
+      width: 340,
+      maxWidth: "calc(100vw - 48px)",
+      background: "#0a1628",
+      border: `1.5px solid ${C.blue}55`,
+      borderRadius: 14,
+      boxShadow: `0 24px 64px rgba(0,0,0,0.8), 0 0 0 1px ${C.blue}22`,
+      zIndex: 9999,
+      overflow: "hidden",
+      fontFamily: font
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: `linear-gradient(90deg, ${C.blue}33, ${C.blue}11)`,
+      borderBottom: `1px solid ${C.border}`,
+      padding: "10px 14px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: C.blue,
+      letterSpacing: 1.5
+    }
+  }, "CONSOLE HELP"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(false),
+    style: {
+      background: "transparent",
+      border: "none",
+      color: C.muted,
+      cursor: "pointer",
+      fontSize: 14,
+      lineHeight: 1,
+      padding: "0 2px"
+    }
+  }, "\xD7")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "12px 14px 10px",
+      borderBottom: `1px solid ${C.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 800,
+      color: C.qfx,
+      letterSpacing: 1.8,
+      textTransform: "uppercase",
+      marginBottom: 5,
+      background: `${C.qfx}18`,
+      borderRadius: 4,
+      padding: "2px 8px",
+      display: "inline-block"
+    }
+  }, "What this is and does"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.text,
+      lineHeight: 1.65,
+      margin: "6px 0 0"
+    }
+  }, what)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "10px 14px",
+      borderBottom: `1px solid ${C.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 800,
+      color: C.amber,
+      letterSpacing: 1.8,
+      textTransform: "uppercase",
+      marginBottom: 5,
+      background: `${C.amber}18`,
+      borderRadius: 4,
+      padding: "2px 8px",
+      display: "inline-block"
+    }
+  }, "Why it's needed"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.sub,
+      lineHeight: 1.65,
+      margin: "6px 0 0"
+    }
+  }, needed)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "10px 14px 12px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 800,
+      color: C.purple,
+      letterSpacing: 1.8,
+      textTransform: "uppercase",
+      marginBottom: 5,
+      background: `${C.purple}18`,
+      borderRadius: 4,
+      padding: "2px 8px",
+      display: "inline-block"
+    }
+  }, "Why it matters"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: C.sub,
+      lineHeight: 1.65,
+      margin: "6px 0 0"
+    }
+  }, matters))));
+}
+
+/* ── Shared atoms ── */
+function Badge({
+  label,
+  color = C.blue,
+  small = false
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: small ? 9 : 10,
+      fontWeight: 700,
+      color,
+      background: color + "22",
+      border: `1px solid ${color}33`,
+      borderRadius: 5,
+      padding: small ? "1px 6px" : "2px 8px",
+      whiteSpace: "nowrap"
+    }
+  }, label);
+}
+function StatusPill({
+  status
+}) {
+  const M = {
+    complete: [C.green, "Complete"],
+    enroute: [C.qfx, "En Route"],
+    matched: [C.blue, "Matched"],
+    review: [C.amber, "Review"],
+    escalated: [C.red, "Escalated"],
+    active: [C.green, "Active"],
+    waiting: [C.amber, "Waiting"],
+    idle: [C.muted, "Idle"],
+    online: [C.green, "Online"],
+    busy: [C.amber, "Busy"],
+    offline: [C.muted, "Offline"],
+    pending: [C.purple, "Pending"]
+  };
+  const [color, label] = M[status] || [C.muted, status];
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color,
+      background: color + "22",
+      borderRadius: 5,
+      padding: "2px 8px"
+    }
+  }, label);
+}
+function KPI({
+  label,
+  value,
+  sub,
+  color = C.text,
+  alert = false,
+  tip
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${alert ? C.red + "66" : C.border}`,
+      borderRadius: 12,
+      padding: "14px 16px",
+      position: "relative",
+      overflow: "visible"
+    }
+  }, alert && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 2,
+      background: C.red
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5,
+      marginBottom: 6,
+      display: "flex",
+      alignItems: "center"
+    }
+  }, label.toUpperCase(), tip && /*#__PURE__*/React.createElement(Tooltip, tip)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 800,
+      color,
+      lineHeight: 1,
+      letterSpacing: -0.5
+    }
+  }, value), sub && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: C.muted,
+      marginTop: 4
+    }
+  }, sub));
+}
+function TierDot({
+  tier
+}) {
+  const colors = {
+    auto: C.green,
+    review: C.amber,
+    escalate: C.red
+  };
+  const c = colors[tier] || C.muted;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      width: 8,
+      height: 8,
+      flexShrink: 0
+    }
+  }, tier !== "idle" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      borderRadius: "50%",
+      background: c,
+      opacity: 0.35,
+      animation: "ping 2s ease-in-out infinite"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      background: c,
+      position: "relative"
+    }
+  }));
+}
+function ProAvatar({
+  name,
+  size = 32
+}) {
+  const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: size,
+      height: size,
+      borderRadius: "50%",
+      background: C.lift,
+      border: `1px solid ${C.border}`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: size * 0.35,
+      fontWeight: 700,
+      color: C.sub,
+      flexShrink: 0
+    }
+  }, initials);
+}
+function SectionHeader({
+  title,
+  count,
+  tip,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5
+    }
+  }, title), count != null && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: C.blue,
+      background: C.blueBg,
+      borderRadius: 100,
+      padding: "1px 8px"
+    }
+  }, count), tip && /*#__PURE__*/React.createElement(Tooltip, tip)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, children));
+}
+function Btn({
+  label,
+  onClick,
+  variant = "ghost",
+  size = "sm",
+  icon
+}) {
+  const vs = {
+    ghost: {
+      bg: "transparent",
+      color: C.sub,
+      border: `1px solid ${C.border}`
+    },
+    primary: {
+      bg: C.blue,
+      color: "#fff",
+      border: "none",
+      shadow: `0 4px 12px ${C.blue}44`
+    },
+    danger: {
+      bg: C.redBg,
+      color: C.redL,
+      border: `1px solid ${C.red}44`
+    },
+    success: {
+      bg: C.greenBg,
+      color: C.green,
+      border: `1px solid ${C.green}44`
+    },
+    amber: {
+      bg: C.amberBg,
+      color: C.amber,
+      border: `1px solid ${C.amber}44`
+    },
+    red: {
+      bg: C.red,
+      color: "#fff",
+      border: "none",
+      shadow: `0 4px 12px ${C.red}44`
+    }
+  };
+  const s = vs[variant] || vs.ghost;
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: onClick,
+    style: {
+      fontFamily: font,
+      fontWeight: 700,
+      fontSize: size === "sm" ? 11 : 13,
+      padding: size === "sm" ? "6px 12px" : "9px 16px",
+      borderRadius: 8,
+      cursor: "pointer",
+      transition: "all 0.15s",
+      display: "flex",
+      alignItems: "center",
+      gap: 5,
+      ...s,
+      boxShadow: s.shadow || "none"
+    }
+  }, icon && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13
+    }
+  }, icon), label);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   OVERVIEW TAB
+═══════════════════════════════════════════════════════════ */
+function OverviewTab({
+  jobs,
+  pros,
+  metrics,
+  onTabChange
+}) {
+  const active = jobs.filter(j => ["enroute", "matched", "active"].includes(j.status));
+  const m = metrics.today;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))",
+      gap: 10,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement(KPI, {
+    label: "Jobs Today",
+    value: m.jobs,
+    color: C.text,
+    sub: "\u219112% vs yesterday",
+    tip: {
+      what: "Total job bookings confirmed today across all four markets. Resets at midnight local time for each market.",
+      needed: "Tracks daily platform activity and whether demand is growing, flat, or dropping in real time.",
+      matters: "Your primary leading indicator of revenue. A sudden drop may signal a coverage gap, payment issue, or technical problem with the intake pipeline."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Revenue",
+    value: `$${m.revenue}`,
+    color: C.green,
+    sub: "\u21918% vs yesterday",
+    tip: {
+      what: "Gross platform revenue today: sum of all $9.99 booking fees plus 15% commission on every completed flat-rate job.",
+      needed: "Shows daily cash generation. Calculated from Stripe capture events as jobs are marked complete.",
+      matters: "Confirms the business model is generating real cash, not just bookings. Divergence between job count and revenue can reveal uncompleted jobs or payment failures."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Active Now",
+    value: active.length,
+    color: C.qfx,
+    sub: "Jobs in progress",
+    tip: {
+      what: "Count of jobs currently in an active state: Matched (pro assigned), En Route (pro driving), or In Progress (repair underway).",
+      needed: "Real-time operational load — tells you how many jobs your contractor network is handling at this exact moment.",
+      matters: "If this number is high while SLA % is dropping, you have a capacity problem. If it's near zero during service hours, check the intake pipeline."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "QuikFix Rate",
+    value: `${m.quikfixPct}%`,
+    color: C.blue,
+    sub: "Target \u226580%",
+    tip: {
+      what: "Percentage of jobs today that qualified for the QuikFix badge — meaning AI confidence ≥90%, single repair, no hazards, and a vetted pro available within 30 minutes.",
+      needed: "QuikFix is the core product promise. This metric shows how often you can actually deliver on it.",
+      matters: "Below 80% means customers are seeing a degraded experience — no badge, longer ETAs, less trust. Common causes: low contractor coverage, off-peak hours, or AI confidence issues."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "SLA Met",
+    value: `${m.slaMetPct}%`,
+    color: m.slaMetPct >= 90 ? C.green : C.amber,
+    sub: "Target \u226592%",
+    alert: m.slaMetPct < 90,
+    tip: {
+      what: "Percentage of QuikFix jobs where the pro arrived at the customer's location within 60 minutes of booking confirmation.",
+      needed: "This is the legal and brand commitment. Every QuikFix job carries an arrival guarantee. This metric tracks whether you're keeping that promise.",
+      matters: "Below 90% is a red alert. It means customer complaints, refund requests, and damage to the QuikFix brand. Investigate contractor locations and drive-time data immediately."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Review Rate",
+    value: `${m.reviewPct}%`,
+    color: m.reviewPct > 15 ? C.red : C.amber,
+    sub: "Target \u226412%",
+    alert: m.reviewPct > 15,
+    tip: {
+      what: "Percentage of jobs routed to human review instead of auto-dispatched. This happens when AI confidence is below 90%, hazard keywords are detected, or job type is 'other'.",
+      needed: "Review rate reflects AI pipeline health. A rising rate means the model is less confident — more jobs need human time and slow down dispatch.",
+      matters: "Above 15% is unsustainable at scale — it means your ops team is overwhelmed and response times suffer. Investigate with the AI Agents tab to find which categories are underperforming."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Avg ETA",
+    value: `${m.avgEta}m`,
+    color: C.text,
+    sub: "Target \u226425 min",
+    tip: {
+      what: "Average drive time (in minutes) from pro dispatch acceptance to arrival at the customer location, across all jobs today.",
+      needed: "Validates the 30-minute drive-time geofence. If average ETA is above 25 minutes, pros are being dispatched from too far away.",
+      matters: "ETA directly determines whether the 60-minute promise is achievable. High ETAs indicate a geofence coverage problem or that online pros are not near active ZIP codes."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Cancel Rate",
+    value: `${m.cancelPct}%`,
+    color: C.text,
+    sub: "Target \u22648%",
+    tip: {
+      what: "Percentage of confirmed bookings that were cancelled before job completion. Includes both customer cancellations and no-shows by either party.",
+      needed: "High cancellations waste contractor time, cost platform revenue, and damage trust scores.",
+      matters: "Above 8% indicates friction in the booking flow, pricing that customers don't accept after seeing the total, or contractor no-shows. Each cause requires a different fix."
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement(SectionHeader, {
+    title: "ACTIVE JOBS",
+    count: active.length,
+    tip: {
+      what: "Live list of all jobs currently in progress — matched, en route, or being repaired. Updates in real time via WebSocket.",
+      needed: "Gives ops visibility into what is happening right now across all markets without clicking into each individual job.",
+      matters: "If a job has been 'En Route' for over 45 minutes, it may miss SLA — this is the earliest warning signal for a potential breach."
+    }
+  }, /*#__PURE__*/React.createElement(Btn, {
+    label: "View All",
+    onClick: () => onTabChange("dispatch")
+  })), active.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "20px",
+      color: C.muted,
+      fontSize: 13
+    }
+  }, "No active jobs") : active.map(j => /*#__PURE__*/React.createElement("div", {
+    key: j.id,
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "center",
+      padding: "9px 0",
+      borderBottom: `1px solid ${C.border}`
+    }
+  }, /*#__PURE__*/React.createElement(TierDot, {
+    tier: j.tier
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: C.text
+    }
+  }, j.fix), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: C.muted
+    }
+  }, j.customer, " \xB7 ZIP ", j.zip)), /*#__PURE__*/React.createElement(StatusPill, {
+    status: j.status
+  }), j.eta > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 800,
+      color: C.qfx
+    }
+  }, j.eta, "m")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement(SectionHeader, {
+    title: "PRO AVAILABILITY",
+    tip: {
+      what: "Breakdown of your contractor network by status: Online (available to receive jobs), Busy (on an active job), Offline (not available), Pending (awaiting verification).",
+      needed: "Dispatch can only work if pros are online. This panel tells you instantly whether you have coverage right now.",
+      matters: "If fewer than 2 pros per trade are Online in a given market, QuikFix eligibility drops for that trade. Watch this during peak hours and early morning shift changes."
+    }
+  }, /*#__PURE__*/React.createElement(Btn, {
+    label: "Manage",
+    onClick: () => onTabChange("pros")
+  })), ["online", "busy", "offline", "pending"].map(s => {
+    const count = pros.filter(p => p.status === s).length;
+    const colors = {
+      online: C.green,
+      busy: C.amber,
+      offline: C.muted,
+      pending: C.purple
+    };
+    return /*#__PURE__*/React.createElement("div", {
+      key: s,
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "8px 0",
+        borderBottom: `1px solid ${C.border}`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 7,
+        height: 7,
+        borderRadius: "50%",
+        background: colors[s]
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: C.sub,
+        textTransform: "capitalize"
+      }
+    }, s)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 16,
+        fontWeight: 800,
+        color: colors[s]
+      }
+    }, count));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      padding: "10px",
+      background: C.lift,
+      borderRadius: 8,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.sub
+    }
+  }, pros.filter(p => ["online", "busy"].includes(p.status)).length, " of ", pros.length, " pros available")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement(SectionHeader, {
+    title: "ACTIVITY FEED",
+    tip: {
+      what: "Chronological log of all platform events: job submissions, dispatches, escalations, payment captures, ratings, and system alerts.",
+      needed: "The activity feed is your audit trail. Every significant action is logged with a timestamp and job ID.",
+      matters: "When something goes wrong — a missed SLA, a customer complaint, a payment failure — the activity feed is where you trace exactly what happened and when."
+    }
+  }), [{
+    time: "2:31 PM",
+    event: "Job BWK-9988E auto-dispatched to James Okafor (ETA 24 min)",
+    color: C.green
+  }, {
+    time: "2:18 PM",
+    event: "ESCALATION — BWK-9981D flagged: gas keyword detected, safety team notified",
+    color: C.red
+  }, {
+    time: "2:02 PM",
+    event: "BWK-9972B routed to human review (confidence 88%, scope unclear)",
+    color: C.amber
+  }, {
+    time: "1:52 PM",
+    event: "Payment captured — BWK-9950C · $68.99 · James T.",
+    color: C.blue
+  }, {
+    time: "1:45 PM",
+    event: "Pro Maria Santos en route — BWK-9961F (disposal reset, ETA 18 min)",
+    color: C.qfx
+  }, {
+    time: "9:14 AM",
+    event: "BWK-9945A completed — Sarah K. rated 5 stars · $98.99 captured",
+    color: C.green
+  }].map((a, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 12,
+      padding: "9px 0",
+      borderBottom: i < 5 ? `1px solid ${C.border}` : "none"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: C.muted,
+      flexShrink: 0,
+      marginTop: 1,
+      width: 52
+    }
+  }, a.time), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 3,
+      background: a.color,
+      borderRadius: 2,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: C.sub,
+      lineHeight: 1.5
+    }
+  }, a.event)))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DISPATCH TAB
+═══════════════════════════════════════════════════════════ */
+function DispatchTab({
+  jobs,
+  pros
+}) {
+  const [filter, setFilter] = useState("all");
+  const filtered = filter === "all" ? jobs : jobs.filter(j => j.status === filter);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      marginBottom: 14,
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      marginRight: 4
+    }
+  }, "Filter by status"), /*#__PURE__*/React.createElement(Tooltip, {
+    what: "Filter the dispatch feed to show only jobs in a specific status. 'All' shows the full pipeline.",
+    needed: "As job volume grows, you need to quickly find escalated or review-queue jobs without scrolling through completed ones.",
+    matters: "Filtering to 'Escalated' first thing each shift ensures no safety events are missed. Filtering to 'Review' shows your ops workload for the next 2 hours."
+  }), ["all", "matched", "enroute", "review", "escalated", "complete"].map(f => /*#__PURE__*/React.createElement("button", {
+    key: f,
+    onClick: () => setFilter(f),
+    style: {
+      fontFamily: font,
+      fontSize: 11,
+      fontWeight: 700,
+      cursor: "pointer",
+      borderRadius: 8,
+      padding: "6px 14px",
+      transition: "all 0.15s",
+      background: filter === f ? C.blue + "22" : "transparent",
+      color: filter === f ? C.blue : C.muted,
+      border: `1px solid ${filter === f ? C.blue : C.border}`
+    }
+  }, f.charAt(0).toUpperCase() + f.slice(1), filter !== f && f !== "all" && ` (${jobs.filter(j => j.status === f).length})`))), filtered.map(j => {
+    const pro = pros.find(p => p.id === j.proId);
+    return /*#__PURE__*/React.createElement("div", {
+      key: j.id,
+      style: {
+        background: C.card,
+        border: `1.5px solid ${j.status === "escalated" ? C.red + "55" : j.status === "review" ? C.amber + "44" : C.border}`,
+        borderRadius: 14,
+        padding: 16,
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 12,
+        alignItems: "flex-start",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement(TierDot, {
+      tier: j.tier
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 200
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        alignItems: "center",
+        marginBottom: 4,
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 800,
+        color: C.text,
+        fontFamily: "monospace"
+      }
+    }, j.id), /*#__PURE__*/React.createElement(StatusPill, {
+      status: j.status
+    }), j.quikfix && /*#__PURE__*/React.createElement(Badge, {
+      label: "\u26A1 QuikFix",
+      color: C.qfx,
+      small: true
+    }), j.urgency === "emergency" && /*#__PURE__*/React.createElement(Badge, {
+      label: "\uD83D\uDEA8 Emergency",
+      color: C.red,
+      small: true
+    }), /*#__PURE__*/React.createElement(Badge, {
+      label: j.type,
+      color: C.blue,
+      small: true
+    }), /*#__PURE__*/React.createElement(Tooltip, {
+      what: `Job ${j.id}: a ${j.type} repair request currently in ${j.status} status. Tier: ${j.tier}. AI confidence: ${j.confidence}%.`,
+      needed: "Each job card shows the complete dispatch context \u2014 customer, repair type, assigned pro, confidence, and ETA \u2014 so you can assess any job at a glance without opening a detail view.",
+      matters: `Confidence of ${j.confidence}% ${j.confidence < 90 ? " is below the 90% threshold for QuikFix — this job was or will be reviewed manually." : " meets the auto-dispatch threshold."} Tier '${j.tier}' determines whether this was dispatched automatically or required human action.`
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 700,
+        color: C.text,
+        marginBottom: 3
+      }
+    }, j.fix), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.muted
+      }
+    }, j.customer, " \xB7 ZIP ", j.zip, " \xB7 ", j.ts)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 14,
+        alignItems: "center",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 9,
+        color: C.muted,
+        letterSpacing: 0.5,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 3
+      }
+    }, "RATE", /*#__PURE__*/React.createElement(Tooltip, {
+      what: "The flat-rate amount the contractor receives (before 15% platform commission). This is the price the customer was quoted minus the $9.99 booking fee.",
+      needed: "Contractors see this rate when they receive the job alert. Transparency here drives acceptance rates.",
+      matters: "If the rate feels too low for a job type, acceptance rates drop and dispatch times increase. Monitor acceptance rates by repair type in Analytics."
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 16,
+        fontWeight: 800,
+        color: C.green
+      }
+    }, j.rate > 0 ? `$${j.rate}` : "TBD")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 9,
+        color: C.muted,
+        letterSpacing: 0.5,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 3
+      }
+    }, "CONFIDENCE", /*#__PURE__*/React.createElement(Tooltip, {
+      what: "The AI pipeline's confidence score (0\u2013100%) that it correctly classified this repair and priced it accurately from the customer's transcript.",
+      needed: "Confidence gates auto-dispatch. Jobs below 90% are held for human review. The score is calculated after both the Extract and Price stages of the Claude pipeline.",
+      matters: "Low confidence scores cost ops time and delay the customer. If a repair type consistently scores below 90%, the prompt for that category needs refinement."
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 700,
+        color: j.confidence >= 90 ? C.green : j.confidence >= 75 ? C.amber : C.red
+      }
+    }, j.confidence, "%")), pro && /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }
+    }, /*#__PURE__*/React.createElement(ProAvatar, {
+      name: pro.name,
+      size: 28
+    }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 600,
+        color: C.text
+      }
+    }, pro.name.split(" ")[0]), /*#__PURE__*/React.createElement(StatusPill, {
+      status: pro.status
+    }))), j.eta > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 9,
+        color: C.muted,
+        letterSpacing: 0.5,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 3
+      }
+    }, "ETA", /*#__PURE__*/React.createElement(Tooltip, {
+      what: "Estimated drive time in minutes from the pro's current location to the customer's address, calculated at the time of dispatch using Mapbox Isochrone with live traffic.",
+      needed: "ETA is the operational heart of the QuikFix promise. This number tells you whether the 60-minute arrival guarantee is achievable for this specific job.",
+      matters: "If ETA is above 30 minutes, the QuikFix badge should not be shown. An ETA above 40 minutes at dispatch almost guarantees an SLA breach \u2014 escalate or re-dispatch immediately."
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        fontWeight: 800,
+        color: C.qfx
+      }
+    }, j.eta, "m")))));
+  }));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REVIEW QUEUE TAB
+═══════════════════════════════════════════════════════════ */
+function ReviewTab({
+  queue,
+  onResolve,
+  notify
+}) {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 12,
+      padding: "12px 16px",
+      marginBottom: 14,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: C.text,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, "Human Review Queue", /*#__PURE__*/React.createElement(Tooltip, {
+    what: "Jobs that the AI pipeline could not auto-dispatch are held here. Each job shows the customer transcript, AI confidence score, detected flags, and the AI's suggested rate so a human can make the final dispatch decision.",
+    needed: "The AI is not infallible. Ambiguous jobs, multi-issue repairs, hazard keywords, and low-confidence classifications all require human judgment before a contractor is dispatched.",
+    matters: "This queue is your safety net. A missed escalation (gas smell, electrical hazard, flooding) dispatched without review could result in injury, liability, and permanent brand damage. Target: clear all jobs within 2 hours of submission."
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      marginTop: 2
+    }
+  }, "SLA target: clear all within 2 hours")), queue.length > 0 && /*#__PURE__*/React.createElement(Badge, {
+    label: `${queue.length} pending`,
+    color: C.amber
+  })), queue.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "60px 20px",
+      color: C.muted
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 40,
+      marginBottom: 12
+    }
+  }, "\u2713"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      color: C.text
+    }
+  }, "Queue cleared"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      marginTop: 6
+    }
+  }, "All jobs auto-dispatched or resolved")) : queue.map(rj => /*#__PURE__*/React.createElement("div", {
+    key: rj.id,
+    style: {
+      background: C.card,
+      border: `1.5px solid ${rj.flags.includes("hazard") ? C.red + "55" : C.amber + "44"}`,
+      borderRadius: 16,
+      padding: 18,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 14,
+      flexWrap: "wrap",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      alignItems: "center",
+      marginBottom: 5,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 800,
+      color: C.text,
+      fontFamily: "monospace"
+    }
+  }, rj.id), rj.flags.map(f => /*#__PURE__*/React.createElement(Badge, {
+    key: f,
+    label: f.replace(/_/g, " "),
+    color: rj.flags.includes("hazard") ? C.red : C.amber,
+    small: true
+  })), /*#__PURE__*/React.createElement(Tooltip, {
+    what: `Flags detected by the post-LLM validator: ${rj.flags.join(", ")}. These are the specific reasons this job was held from auto-dispatch.`,
+    needed: "Flags tell the reviewer exactly what triggered the hold, so they can make an informed decision quickly rather than re-reading the full transcript to figure out the problem.",
+    matters: rj.flags.includes("hazard") ? "A HAZARD flag means a potentially dangerous keyword was detected. Do not approve this job for dispatch without confirming the safety situation is not an emergency. Consider calling the customer first." : "Scope and location flags typically mean the job may be more complex or expensive than the AI estimated. Override the rate if needed before approving."
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.text,
+      marginBottom: 3
+    }
+  }, rj.fix), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.muted
+    }
+  }, "Customer: ", rj.customer, " \xB7 Reason: ", rj.reason))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.lift,
+      borderRadius: 10,
+      padding: "12px 14px",
+      marginBottom: 14,
+      borderLeft: `3px solid ${rj.flags.includes("hazard") ? C.red : C.amber}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5,
+      marginBottom: 5,
+      display: "flex",
+      alignItems: "center",
+      gap: 5
+    }
+  }, "CUSTOMER TRANSCRIPT", /*#__PURE__*/React.createElement(Tooltip, {
+    what: "The exact words the customer used to describe their repair \u2014 either spoken via voice or typed into the AI chat. This is the raw input that the Claude pipeline classified.",
+    needed: "Reading the original transcript lets you catch nuances the AI may have missed \u2014 uncertainty, secondary symptoms, or hazard signals buried in casual language.",
+    matters: "The transcript is legally discoverable. For escalated jobs involving injuries or property damage, it establishes what the customer said and when. Never delete or modify transcripts."
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.sub,
+      fontStyle: "italic"
+    }
+  }, "\"", rj.transcript, "\"")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      alignItems: "center",
+      marginBottom: 14,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: C.muted,
+      display: "flex",
+      alignItems: "center",
+      gap: 4
+    }
+  }, "AI suggested: ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: C.amber
+    }
+  }, "$", rj.aiRate), /*#__PURE__*/React.createElement(Tooltip, {
+    what: `The rate the Claude Pricing Agent returned for this job: $${rj.aiRate}. This is the flat-rate catalog price for the classified repair type.`,
+    needed: "You need to know the AI's starting point before you override it, so you can assess whether the AI was close, too low, or completely wrong.",
+    matters: "If you approve at the AI rate and the actual scope is larger, the contractor may refuse to complete the job or the customer may be charged more than quoted \u2014 both damage trust. Override when scope is unclear."
+  })), rj.suggestedRate > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: C.muted,
+      display: "flex",
+      alignItems: "center",
+      gap: 4
+    }
+  }, "Override suggestion: ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: C.blue
+    }
+  }, "$", rj.suggestedRate), /*#__PURE__*/React.createElement(Tooltip, {
+    what: `The rate the review system suggests based on the broader scope implied by the transcript: $${rj.suggestedRate}. This is a recommendation, not a requirement.`,
+    needed: "When scope is unclear, having a suggested override saves the reviewer from having to calculate a new price from scratch.",
+    matters: "Overriding to the right price protects the contractor's time and prevents the 'scope creep' dispute that is the most common source of negative contractor ratings."
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, rj.flags.includes("hazard") ? /*#__PURE__*/React.createElement(Btn, {
+    label: "\uD83D\uDEA8 Escalate to Safety Team",
+    onClick: () => {
+      onResolve(rj.id, "escalate");
+      notify("Job " + rj.id + " escalated to safety", C.red);
+    },
+    variant: "danger"
+  }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Btn, {
+    label: `✓ Approve $${rj.aiRate}`,
+    onClick: () => {
+      onResolve(rj.id, "approve_ai");
+      notify("Job " + rj.id + " approved at $" + rj.aiRate, C.green);
+    },
+    variant: "success"
+  }), rj.suggestedRate > 0 && /*#__PURE__*/React.createElement(Btn, {
+    label: `Override $${rj.suggestedRate}`,
+    onClick: () => {
+      onResolve(rj.id, "override");
+      notify("Job " + rj.id + " overridden to $" + rj.suggestedRate, C.amber);
+    },
+    variant: "amber"
+  }), /*#__PURE__*/React.createElement(Btn, {
+    label: "Decline",
+    onClick: () => {
+      onResolve(rj.id, "decline");
+      notify("Job " + rj.id + " declined", C.muted);
+    },
+    variant: "ghost"
+  }))))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROS TAB
+═══════════════════════════════════════════════════════════ */
+function ProsTab({
+  pros,
+  onUpdate,
+  notify
+}) {
+  const [search, setSearch] = useState("");
+  const filtered = pros.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.trade.toLowerCase().includes(search.toLowerCase()));
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: search,
+    onChange: e => setSearch(e.target.value),
+    placeholder: "Search by name or trade\u2026",
+    style: {
+      flex: 1,
+      background: C.surf,
+      border: `1px solid ${C.border}`,
+      borderRadius: 10,
+      padding: "10px 14px",
+      fontSize: 13,
+      color: C.text,
+      outline: "none",
+      fontFamily: font
+    },
+    onFocus: e => e.target.style.borderColor = C.blue,
+    onBlur: e => e.target.style.borderColor = C.border
+  }), /*#__PURE__*/React.createElement(Tooltip, {
+    what: "Search the full contractor roster by name or trade type. Returns matching results in real time.",
+    needed: "As the roster grows to 50+ contractors across 4 markets, you need fast lookup to find a specific pro without scrolling.",
+    matters: "Fast pro lookup is critical during a live dispatch issue \u2014 if a contractor isn't responding, you need to find them, check their status, and potentially reassign the job within seconds."
+  })), filtered.map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.id,
+    style: {
+      background: C.card,
+      border: `1.5px solid ${!p.verified ? C.amber + "44" : C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 10,
+      display: "flex",
+      gap: 14,
+      alignItems: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement(ProAvatar, {
+    name: p.name,
+    size: 44
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 180
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      alignItems: "center",
+      marginBottom: 4,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: C.text
+    }
+  }, p.name), /*#__PURE__*/React.createElement(StatusPill, {
+    status: p.status
+  }), !p.verified && /*#__PURE__*/React.createElement(Badge, {
+    label: "\u23F3 Awaiting Verification",
+    color: C.amber,
+    small: true
+  }), p.verified && /*#__PURE__*/React.createElement(Badge, {
+    label: "\u2713 Verified",
+    color: C.green,
+    small: true
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      marginBottom: 6
+    }
+  }, p.trade, " \xB7 ZIP ", p.zip, " \xB7 ", p.jobs, " jobs \xB7 \u2605 ", p.rating || "New"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: C.muted,
+      display: "flex",
+      alignItems: "center",
+      gap: 3
+    }
+  }, "Trust", /*#__PURE__*/React.createElement(Tooltip, {
+    what: `Trust Score: ${p.trustScore}/100. Composite of 5 components: identity verified (20pts), background check (20pts), license verified (20pts), COI on file (20pts), rating ≥4.0 (10pts), job count tier (10pts).`,
+    needed: "The Trust Score is displayed to customers as a 0\u201310 bar graphic on the pro card. It determines which pro appears first when multiple are available.",
+    matters: `A score of ${p.trustScore} means ${p.trustScore >= 90 ? "this pro has completed all verifications and maintains high ratings — they should be prioritized for dispatch." : p.trustScore >= 70 ? "this pro has most verifications complete but may have a gap. Check which component is missing." : "this pro is missing critical verifications. Do not dispatch until their score improves."}`
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 80,
+      height: 4,
+      background: C.border,
+      borderRadius: 2
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${p.trustScore}%`,
+      borderRadius: 2,
+      background: p.trustScore >= 90 ? C.green : p.trustScore >= 70 ? C.amber : C.red
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: p.trustScore >= 90 ? C.green : p.trustScore >= 70 ? C.amber : C.red
+    }
+  }, p.trustScore), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: C.muted
+    }
+  }, "\xB7 $", p.earnings, " today"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      flexWrap: "wrap"
+    }
+  }, !p.verified && /*#__PURE__*/React.createElement(Btn, {
+    label: "Approve",
+    onClick: () => {
+      onUpdate(p.id, "verify");
+      notify(p.name + " verified", C.green);
+    },
+    variant: "success",
+    size: "sm"
+  }), p.status !== "offline" && /*#__PURE__*/React.createElement(Btn, {
+    label: "Suspend",
+    onClick: () => {
+      onUpdate(p.id, "suspend");
+      notify(p.name + " suspended", C.amber);
+    },
+    variant: "amber",
+    size: "sm"
+  }), /*#__PURE__*/React.createElement(Btn, {
+    label: "Profile",
+    variant: "ghost",
+    size: "sm"
+  })))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANALYTICS TAB
+═══════════════════════════════════════════════════════════ */
+function AnalyticsTab({
+  metrics
+}) {
+  const m = metrics.today;
+  const ai = metrics.ai;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement(KPI, {
+    label: "Jobs This Week",
+    value: metrics.week.jobs,
+    color: C.blue,
+    sub: `$${metrics.week.revenue} revenue`,
+    tip: {
+      what: "Total completed jobs and gross platform revenue over the rolling 7-day window ending today.",
+      needed: "Weekly view smooths out daily variance — a slow Monday followed by a busy Tuesday looks fine at the week level but alarming at the day level.",
+      matters: "Week-over-week growth above 10% is healthy. Below 0% for two consecutive weeks warrants investigation into demand generation and contractor coverage."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Weekly SLA Rate",
+    value: `${metrics.week.slaMetPct}%`,
+    color: C.green,
+    sub: "Target \u226592%",
+    tip: {
+      what: "Percentage of QuikFix-badged jobs this week where the pro arrived within 60 minutes of booking confirmation.",
+      needed: "Weekly SLA rate is smoother than daily and better represents your true delivery capability.",
+      matters: "The 92% target is non-negotiable for brand integrity. If this drops below 89%, pause QuikFix eligibility in the underperforming market until coverage is restored."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "AI Avg Confidence",
+    value: `${ai.confidence}%`,
+    color: C.qfx,
+    sub: "Classification accuracy",
+    tip: {
+      what: "Average AI confidence score across all jobs this week. The confidence score measures how certain the Claude pipeline is about its job classification and pricing.",
+      needed: "Average confidence directly predicts your review queue volume. Lower confidence = more manual reviews = slower dispatch and higher ops cost.",
+      matters: "Below 85% means the AI is struggling with your current job mix — review which categories are dragging down the average in the Prompts tab and consider prompt refinement."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Schema Valid",
+    value: `${ai.schemaValid}%`,
+    color: C.green,
+    sub: "Post-validator pass rate",
+    tip: {
+      what: "Percentage of AI pipeline outputs that pass the post-LLM deterministic validator — meaning they contain all required fields, valid enums, and no illegal values.",
+      needed: "Schema validation is the safety net between Claude's output and actual dispatch. If this drops, the validator is catching more errors — and silently blocking jobs from going out.",
+      matters: "Below 97% is a red alert. It means the AI is producing malformed outputs — either a prompt regression or a model update changed output format. Check the Prompts tab immediately."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Rate Accuracy",
+    value: `${ai.rateAccuracy}%`,
+    color: C.blue,
+    sub: "vs human review panel",
+    tip: {
+      what: "Percentage of AI-generated prices that match the price a human reviewer would assign, benchmarked against a monthly review dataset of 50 randomly sampled jobs.",
+      needed: "Rate accuracy measures whether customers are being quoted the right price. Inaccurate pricing leads to disputes, contractor refusals, and chargebacks.",
+      matters: "Below 90% means 1-in-10 jobs is mispriced. That's customer trust damage and potential refund exposure. Update the Pricing prompt with additional examples from recent review queue overrides."
+    }
+  }), /*#__PURE__*/React.createElement(KPI, {
+    label: "Avg AI Latency",
+    value: `${ai.avgLatency}s`,
+    color: C.amber,
+    sub: "Transcript \u2192 ticket",
+    tip: {
+      what: "Average time in seconds from when a customer submits their repair description to when the validated job ticket is ready for dispatch.",
+      needed: "Latency is a direct user experience metric. The customer is waiting on a loading screen during this window.",
+      matters: "Above 4 seconds feels broken on mobile. Target is under 3 seconds p95. High latency usually means Claude API throttling or an oversized prompt — check both."
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement(SectionHeader, {
+    title: "JOB TYPE MIX \u2014 TODAY",
+    tip: {
+      what: "Breakdown of today's jobs by trade category: plumbing, electrical, handyman, drywall, appliance, and other.",
+      needed: "Understanding your job mix tells you which trades are in demand and whether your contractor roster matches that demand.",
+      matters: "If 40% of jobs are plumbing but only 20% of your online pros are plumbers, you'll see long ETAs and low QuikFix rates for plumbing. Recruitment should target the highest-volume trades."
+    }
+  }), [["Plumbing", 33, C.blue], ["Electrical", 22, C.amber], ["Handyman", 18, C.qfx], ["Drywall", 12, C.purple], ["Appliance", 9, C.green], ["Other", 6, C.muted]].map(([label, pct, color]) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: C.sub
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color
+    }
+  }, pct, "%")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 6,
+      background: C.border,
+      borderRadius: 3
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${pct}%`,
+      background: color,
+      borderRadius: 3
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement(SectionHeader, {
+    title: "REVENUE BY MARKET \u2014 TODAY",
+    tip: {
+      what: "Platform revenue (booking fees + commissions) broken down by city: Austin, Dallas, Denver, Nashville.",
+      needed: "Market-level revenue shows you which cities are driving growth and which are underperforming.",
+      matters: "A market generating less than $300/day suggests contractor coverage or demand generation issues. Use this to prioritize where to recruit more pros or run marketing."
+    }
+  }), [["Austin TX", 420, "#34d399"], ["Dallas TX", 380, C.blue], ["Denver CO", 310, C.amber], ["Nashville TN", 310, C.purple]].map(([city, rev, color]) => /*#__PURE__*/React.createElement("div", {
+    key: city,
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "10px 0",
+      borderBottom: `1px solid ${C.border}`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: C.sub
+    }
+  }, city), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 80,
+      height: 4,
+      background: C.border,
+      borderRadius: 2
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: `${rev / 420 * 100}%`,
+      background: color,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color
+    }
+  }, "$", rev))))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AI AGENTS TAB
+═══════════════════════════════════════════════════════════ */
+function AgentsTab({
+  agents
+}) {
+  const totalCalls = agents.reduce((s, a) => s + a.calls, 0);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 12,
+      padding: "12px 16px",
+      marginBottom: 14,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: C.text,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, "All 9 agents operational", /*#__PURE__*/React.createElement(Tooltip, {
+    what: "The AI agent panel shows the operational status of all 9 Claude-powered agents that run the BailiwickQuikFix dispatch pipeline. Each agent handles a specific stage of the job lifecycle.",
+    needed: "A failed or degraded agent can silently break the dispatch pipeline. Without this panel, you'd only discover a problem when customers stop getting dispatches \u2014 by then, dozens of jobs may be affected.",
+    matters: "If any agent shows 'Error' or unexpected 'Idle' status during service hours, every job flowing through that stage is affected. This is your first-line alert before customers feel the impact."
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      marginTop: 2
+    }
+  }, "Model: ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.qfx,
+      fontWeight: 700
+    }
+  }, "claude-sonnet-4-20250514"), " \xB7 Temp: 0.1 \xB7 Max tokens: 1024")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(Badge, {
+    label: `${totalCalls} calls today`,
+    color: C.blue
+  }), /*#__PURE__*/React.createElement(Badge, {
+    label: "System Healthy",
+    color: C.green
+  }))), agents.map((a, i) => {
+    const agentDescriptions = {
+      "Intake": {
+        what: "Receives the raw customer transcript (voice or text) and validates that it is parseable before passing it to the Classification agent.",
+        needed: "Acts as a gatekeeper — malformed or empty transcripts are rejected here rather than consuming tokens in downstream agents.",
+        matters: "If Intake is down or erroring, no new jobs can enter the pipeline at all. Every customer submission will fail silently."
+      },
+      "Classification": {
+        what: "Assigns job_type (plumbing, electrical, drywall, appliance, door_window, other) and extracts the specific_fix description from the customer's words.",
+        needed: "Correct classification routes the job to the right contractor trade and determines which flat-rate price to look up.",
+        matters: "Misclassification means wrong contractor, wrong tools, and a job that can't be completed — resulting in a no-show, a refund, and a 1-star rating."
+      },
+      "Pricing": {
+        what: "Looks up the flat-rate catalog price for the classified repair, calculates the confidence score, and determines QuikFix eligibility.",
+        needed: "Pricing is the customer-facing commitment. The number shown on the Confirm screen is this agent's output.",
+        matters: "Pricing errors are the most customer-visible failure. An overcharge causes chargebacks. An undercharge loses revenue and may cause contractors to decline the job."
+      },
+      "Dispatch": {
+        what: "Finds the best available contractor within a 30-minute drive radius using PostGIS + Mapbox Isochrone, sorted by ETA then trust score.",
+        needed: "Dispatch is the operational core of the platform — this agent turns a priced ticket into a human being on their way to the customer's door.",
+        matters: "Dispatch failures mean no contractor is notified and the customer waits indefinitely. Monitor latency on this agent closely — it calls external APIs and is the most likely to slow down."
+      },
+      "Comms": {
+        what: "Sends SMS alerts to the contractor via Twilio (job offer with 28-second countdown) and status update texts to the customer (pro dispatched, en route, arrived).",
+        needed: "Contractors need immediate notification to maintain fast acceptance rates. Customers need updates to trust the platform.",
+        matters: "If Comms is down, contractors never hear about jobs and customers don't know their pro is coming. This single-agent failure makes the platform appear completely broken to both sides."
+      },
+      "Payment": {
+        what: "Manages Stripe pre-authorization at booking and payment capture on job completion. Handles tip distribution and initiates contractor payout via Stripe Connect.",
+        needed: "Payment is the transaction layer. Without it, customers can't book and contractors can't get paid.",
+        matters: "A payment failure at capture means the contractor worked for free until it's resolved. A failed pre-auth means the booking was never secured. Both require immediate manual intervention."
+      },
+      "Human Review": {
+        what: "Routes jobs below the 90% confidence threshold, or with hazard flags, to the ops review queue with full context (transcript, flags, AI rate, suggested override rate).",
+        needed: "Human judgment is required for anything the AI isn't confident about — especially safety-critical jobs.",
+        matters: "If this agent is slow or down, flagged jobs silently pile up — including potential emergency situations. The review queue SLA of 2 hours depends entirely on this agent functioning."
+      },
+      "Training": {
+        what: "Runs nightly to collect anonymized completed jobs, format them as training examples, and stage them for the next prompt refinement cycle. Does not modify live prompts.",
+        needed: "The model improves over time only if good examples from real jobs are captured and used in future prompt versions.",
+        matters: "If Training is idle for more than 2 weeks, the AI stops getting better. Your accuracy metrics will plateau or drift as job types evolve and the prompt falls out of date."
+      },
+      "Analytics": {
+        what: "Aggregates daily KPIs — job counts, revenue, SLA rates, AI performance metrics, market breakdowns — and populates the Analytics tab.",
+        needed: "The Analytics tab has no data without this agent running. It also powers the automated weekly performance report.",
+        matters: "If Analytics is down, you're flying blind on performance. More importantly, the week-over-week trend data that investors and partners will scrutinize is built from this agent's output."
+      }
+    };
+    const desc = agentDescriptions[a.name] || {
+      what: "AI agent in the dispatch pipeline.",
+      needed: "Required for platform operation.",
+      matters: "Monitor status during service hours."
+    };
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        background: C.card,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 8,
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "relative",
+        width: 10,
+        height: 10,
+        flexShrink: 0
+      }
+    }, a.status === "active" && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: 0,
+        borderRadius: "50%",
+        background: C.green,
+        opacity: 0.4,
+        animation: "ping 2s ease-in-out infinite"
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 10,
+        height: 10,
+        borderRadius: "50%",
+        position: "relative",
+        background: a.status === "active" ? C.green : a.status === "waiting" ? C.amber : C.muted
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: C.text,
+        marginBottom: 2,
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }
+    }, a.name, " Agent", /*#__PURE__*/React.createElement(Tooltip, {
+      what: desc.what,
+      needed: desc.needed,
+      matters: desc.matters
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: C.muted
+      }
+    }, "Last run: ", a.lastRun, " \xB7 ", a.calls, " calls today", a.latency > 0 ? ` · ${a.latency}s avg` : "")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement(StatusPill, {
+      status: a.status
+    }), a.status === "active" && /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 40,
+        height: 16,
+        display: "flex",
+        gap: 1,
+        alignItems: "center"
+      }
+    }, [...Array(6)].map((_, j) => /*#__PURE__*/React.createElement("div", {
+      key: j,
+      style: {
+        flex: 1,
+        borderRadius: 1,
+        background: C.green + "88",
+        height: `${30 + Math.random() * 70}%`,
+        animation: `wv ${0.4 + j * 0.12}s ease-in-out infinite alternate`
+      }
+    })))));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement(SectionHeader, {
+    title: "ACTIVE PROMPT VERSIONS",
+    tip: {
+      what: "The version numbers of the prompts currently powering each stage of the Claude AI pipeline. Each version is stored in the database and can be promoted or rolled back.",
+      needed: "Prompt versioning lets you update the AI without risking the live pipeline. New versions are tested in staging before promotion.",
+      matters: "If accuracy drops after a promotion, you need to know exactly which prompt version changed and when. This table is your audit trail."
+    }
+  }), [{
+    stage: "Extract / Intake",
+    version: "v2.4",
+    accuracy: "97.2%",
+    lastUpdated: "Apr 12"
+  }, {
+    stage: "Classification",
+    version: "v3.1",
+    accuracy: "94.6%",
+    lastUpdated: "Apr 8"
+  }, {
+    stage: "Pricing",
+    version: "v1.8",
+    accuracy: "96.1%",
+    lastUpdated: "Apr 15"
+  }, {
+    stage: "Dispatch",
+    version: "v2.2",
+    accuracy: "98.8%",
+    lastUpdated: "Apr 10"
+  }].map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.stage,
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "10px 0",
+      borderBottom: `1px solid ${C.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.text
+    }
+  }, p.stage, " "), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: C.blue,
+      fontFamily: "monospace"
+    }
+  }, p.version)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.green
+    }
+  }, "\u2605 ", p.accuracy), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: C.muted
+    }
+  }, "Updated ", p.lastUpdated), /*#__PURE__*/React.createElement(Badge, {
+    label: "Active",
+    color: C.green,
+    small: true
+  }))))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROMPTS TAB
+═══════════════════════════════════════════════════════════ */
+function PromptsTab() {
+  const [sel, setSel] = useState("intake");
+  const PROMPTS = {
+    intake: {
+      version: "v2.4",
+      lastUpdated: "Apr 12 2026",
+      author: "Ops Team",
+      content: `You are Bailiwick Dispatch AI, the decision engine for BailiwickQuikFix Home Repairs.\nConvert the homeowner's spoken repair request into a structured, dispatch-ready job ticket.\nReturn ONLY valid JSON. No preamble, no explanation, no markdown.\n\nRULES:\n1. Extract only what is explicitly stated. Never infer or assume.\n2. Emergency trigger words: water, gas, fire, electricity, sparking, flood, smoke → urgency="emergency"\n3. Classify job_type as: plumbing | electrical | drywall | appliance | door_window | other\n4. parts_included: false unless explicitly stated\n5. requires_human_review: true if ambiguous, multi-issue, job_type=other, or confidence <90%\n6. quikfix_eligible: true ONLY if single standard repair, confidence≥90%, no hazard, not multi-issue\n\nReturn schema: { job_type, specific_fix, urgency, estimated_minutes, flat_rate_usd, parts_included, requires_human_review, quikfix_eligible, sla_target_minutes, questions_for_user[], dispatch_instructions, confidence }`
+    },
+    pricing: {
+      version: "v1.8",
+      lastUpdated: "Apr 15 2026",
+      author: "Pricing Team",
+      content: `Apply flat-rate pricing from the BailiwickQuikFix catalog.\nCATALOG: faucet→89, toilet→79, outlet/switch→59, disposal→65, lock→85, blind→49, drywall→69, ceiling_fan→125, unclog→95\nIf job is in catalog: return exact price, quikfix_eligible=true if confidence≥90%\nIf NOT in catalog: return requires_human_review=true, do not guess a price`
+    }
+  };
+  const current = PROMPTS[sel] || PROMPTS.intake;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 14,
+      alignItems: "center"
+    }
+  }, Object.keys(PROMPTS).map(k => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    onClick: () => setSel(k),
+    style: {
+      fontFamily: font,
+      fontSize: 11,
+      fontWeight: 700,
+      cursor: "pointer",
+      borderRadius: 8,
+      padding: "6px 14px",
+      background: sel === k ? C.blue + "22" : "transparent",
+      color: sel === k ? C.blue : C.muted,
+      border: `1px solid ${sel === k ? C.blue : C.border}`
+    }
+  }, k.charAt(0).toUpperCase() + k.slice(1))), /*#__PURE__*/React.createElement(Tooltip, {
+    what: "The Prompts tab displays the full text of each active Claude AI prompt powering the dispatch pipeline. Select a stage to view its current prompt version.",
+    needed: "Ops and engineering need visibility into exactly what instructions are being sent to Claude. Without this, debugging a classification error requires digging through code.",
+    matters: "Every word in these prompts affects how tens or hundreds of jobs per day are classified and priced. A single ambiguous instruction can degrade AI accuracy across an entire repair category."
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "14px 16px",
+      borderBottom: `1px solid ${C.border}`,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: C.text
+    }
+  }, sel.charAt(0).toUpperCase() + sel.slice(1), " Prompt "), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: C.blue,
+      fontFamily: "monospace"
+    }
+  }, current.version), /*#__PURE__*/React.createElement(Tooltip, {
+    what: `This is the ${sel} prompt at version ${current.version}, last updated ${current.lastUpdated} by ${current.author}. It is the exact text sent to claude-sonnet-4-20250514 for this pipeline stage.`,
+    needed: "Displaying the full prompt here means any team member can audit what the AI is being asked to do without needing database access or engineering support.",
+    matters: "If this prompt is edited in production without going through the staging and A/B test process, it can break the entire dispatch pipeline immediately. Read the warning below before making any changes."
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: C.muted
+    }
+  }, "Updated ", current.lastUpdated, " by ", current.author), /*#__PURE__*/React.createElement(Badge, {
+    label: "Active",
+    color: C.green,
+    small: true
+  }), /*#__PURE__*/React.createElement(Btn, {
+    label: "New Version",
+    variant: "primary",
+    size: "sm"
+  }))), /*#__PURE__*/React.createElement("pre", {
+    style: {
+      padding: 16,
+      fontSize: 12,
+      color: C.sub,
+      lineHeight: 1.7,
+      whiteSpace: "pre-wrap",
+      fontFamily: "'Courier New', monospace",
+      background: C.surf,
+      margin: 0,
+      maxHeight: 360,
+      overflowY: "auto"
+    }
+  }, current.content)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.amberBg,
+      border: `1px solid ${C.amber}33`,
+      borderRadius: 10,
+      padding: "10px 14px",
+      marginTop: 10,
+      fontSize: 12,
+      color: C.amber,
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\u26A0\uFE0F"), /*#__PURE__*/React.createElement("span", null, "Never edit a live prompt. Create a new version, A/B test in staging, validate accuracy against the review dataset, then promote. A bad prompt in production affects every job in real time."), /*#__PURE__*/React.createElement(Tooltip, {
+    what: "This warning enforces the prompt governance policy. Live prompts power every active job dispatch. Editing them in place has immediate, irreversible effects on all in-flight jobs.",
+    needed: "Without this guardrail, a well-meaning edit to 'improve' a prompt could inadvertently break the JSON schema, change urgency classification, or disable QuikFix eligibility for all jobs.",
+    matters: "A prompt regression at peak hours (5pm Friday) could silently misprice hundreds of jobs before anyone notices. Always stage, test, and promote \u2014 never edit live."
+  })));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SETTINGS TAB
+═══════════════════════════════════════════════════════════ */
+function SettingsTab({
+  notify
+}) {
+  const [settings, setSettings] = useState({
+    quikfixMinConfidence: 90,
+    reviewQueueSLAMinutes: 120,
+    maxEtaMinutes: 60,
+    bookingFee: 9.99,
+    platformCommission: 15,
+    instantPayoutFee: 1.5,
+    ratingFloor: 4.0,
+    serviceHoursStart: "7:00 AM",
+    serviceHoursEnd: "9:00 PM",
+    emergencyKeywords: "water,gas,fire,electricity,sparking,flood,smoke,burning,mold,breaker"
+  });
+  const settingsDefs = {
+    quikfixMinConfidence: {
+      label: "QuikFix min confidence (%)",
+      note: "Jobs below this % are routed to human review",
+      what: "The minimum AI confidence score (0–100) required for a job to be auto-dispatched with the QuikFix badge. Jobs below this threshold go to human review.",
+      needed: "This threshold is the line between automated dispatch and human oversight. It controls your review queue volume and your auto-dispatch rate simultaneously.",
+      matters: "Lowering this number increases auto-dispatch speed but increases the risk of misclassified or mispriced jobs reaching customers. 90% is the recommended baseline — do not go below 80%."
+    },
+    reviewQueueSLAMinutes: {
+      label: "Review queue SLA (minutes)",
+      note: "Alert if queue not cleared within this window",
+      what: "The maximum number of minutes a job should wait in the human review queue before an alert is triggered. Default is 120 minutes (2 hours).",
+      needed: "Without a time-based alert, review queue jobs can sit for hours — especially hazard escalations that need immediate attention.",
+      matters: "A gas smell job sitting in the review queue for 3 hours while the customer waits is a liability crisis. This setting ensures that never happens."
+    },
+    maxEtaMinutes: {
+      label: "Max ETA guarantee (minutes)",
+      note: "QuikFix SLA promise",
+      what: "The maximum pro arrival time (in minutes) that qualifies for the QuikFix guarantee. Default is 60 minutes. QuikFix badges are only shown when a pro is available within this window.",
+      needed: "This setting operationalizes the brand promise. It's what the dispatch engine checks before showing 'QuikFix — under 60 min' to the customer.",
+      matters: "Raising this above 60 minutes would be misleading to customers. Lowering it (e.g., to 45 minutes) would reduce QuikFix eligibility but strengthen the promise for those who see it."
+    },
+    bookingFee: {
+      label: "Booking fee ($)",
+      note: "Pre-authorized at booking, captured on completion",
+      what: "The flat booking fee charged to every customer on every job, regardless of repair type. Pre-authorized at booking and captured when the job is marked complete.",
+      needed: "The booking fee is a platform revenue stream that is separate from the contractor commission. It covers payment processing costs and contributes to per-job margin.",
+      matters: "This fee is visible to customers before they confirm. Changing it affects conversion rate. A/B test any changes on a single market before rolling out."
+    },
+    platformCommission: {
+      label: "Platform commission (%)",
+      note: "Deducted from contractor payout",
+      what: "The percentage of the flat-rate job price that BailiwickQuikFix retains from the contractor's payout. The contractor receives (flat rate × (1 - commission/100)).",
+      needed: "Commission is the primary revenue driver. At 15%, a $89 faucet repair generates $13.35 in platform revenue plus the $9.99 booking fee.",
+      matters: "Reducing commission below 12% erodes margin below break-even at typical job volumes. Increasing above 18% risks contractor attrition — they will compare this to TaskRabbit's 25–30%."
+    },
+    instantPayoutFee: {
+      label: "Instant payout fee (%)",
+      note: "Optional fee for same-day contractor payout",
+      what: "The percentage fee charged to contractors who opt into same-day direct deposit instead of the standard next-business-day payout.",
+      needed: "Standard payouts are batched for efficiency. Instant payouts require real-time Stripe Connect disbursements that carry higher processing costs.",
+      matters: "Most contractors will use standard payout. This fee is a small revenue add-on. Setting it too high discourages usage; too low doesn't cover costs."
+    },
+    ratingFloor: {
+      label: "Pro rating floor",
+      note: "Pros below this average are flagged for review",
+      what: "The minimum average star rating a contractor must maintain to remain active on the platform. Contractors whose rolling average drops below this are flagged and may be suspended.",
+      needed: "Rating quality control is essential to maintaining the trust that differentiates BailiwickQuikFix from Angi and TaskRabbit.",
+      matters: "A 4.0 floor means customers will rarely encounter a below-average contractor. Raising to 4.2 would improve quality further but reduce contractor supply. Balance carefully."
+    },
+    serviceHoursStart: {
+      label: "Service hours start",
+      note: "Before this time, jobs are queued not dispatched",
+      what: "The time at which dispatch becomes active. Jobs submitted before this window are accepted and priced but held for dispatch until the window opens.",
+      needed: "Contractors should not be dispatched at 3am. Service hours ensure no one is woken up by a job alert outside reasonable hours.",
+      matters: "Changing this affects when the platform's QuikFix promise is active. Market this clearly to customers — the app already shows '7am–9pm' in the footer."
+    },
+    serviceHoursEnd: {
+      label: "Service hours end",
+      note: "After this time, jobs are queued for next morning",
+      what: "The cutoff time for same-day dispatch. Jobs submitted after this time are accepted, priced, and queued for the next morning's dispatch window.",
+      needed: "Managing after-hours expectations prevents customer disappointment. A job submitted at 11pm should not promise 60-minute arrival.",
+      matters: "Extending service hours to 10pm or later increases revenue potential but requires confirming contractor availability and insurance coverage during those hours."
+    },
+    emergencyKeywords: {
+      label: "Emergency override keywords",
+      note: "Comma-separated — triggers emergency + human review",
+      what: "A comma-separated list of keywords that, if detected in any customer transcript, automatically override the AI's urgency classification to 'emergency', block auto-dispatch, and escalate to the human review queue.",
+      needed: "The AI cannot reliably detect every dangerous situation from conversational language. This keyword list is a hard safety override — deterministic code, not AI judgment.",
+      matters: "This list is your last line of defense before a potentially dangerous job is dispatched without human review. Never remove gas, fire, or smoke from this list. Add new terms whenever a near-miss is identified."
+    }
+  };
+  const row = (key, type = "number") => {
+    const def = settingsDefs[key];
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "12px 0",
+        borderBottom: `1px solid ${C.border}`
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        fontWeight: 600,
+        color: C.text,
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }
+    }, def.label, /*#__PURE__*/React.createElement(Tooltip, {
+      what: def.what,
+      needed: def.needed,
+      matters: def.matters
+    })), def.note && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: C.muted,
+        marginTop: 2
+      }
+    }, def.note)), /*#__PURE__*/React.createElement("input", {
+      type: type,
+      value: settings[key],
+      onChange: e => setSettings(s => ({
+        ...s,
+        [key]: type === "number" ? parseFloat(e.target.value) : e.target.value
+      })),
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 8,
+        padding: "7px 12px",
+        fontSize: 13,
+        color: C.text,
+        outline: "none",
+        fontFamily: font,
+        width: type === "text" ? 280 : 100,
+        textAlign: type === "number" ? "right" : "left"
+      }
+    }));
+  };
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5,
+      marginBottom: 12,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, "AI DISPATCH CONFIG", /*#__PURE__*/React.createElement(Tooltip, {
+    what: "Core thresholds that govern how the AI pipeline decides which jobs to auto-dispatch, which to hold for review, and what the QuikFix arrival promise covers.",
+    needed: "These settings are the operational policy of the platform. They determine the tradeoff between speed (auto-dispatch) and safety (human review).",
+    matters: "Changes here affect every job in real time. Test on a single market and monitor review queue volume and SLA rate for 48 hours before rolling to all markets."
+  })), row("quikfixMinConfidence"), row("reviewQueueSLAMinutes"), row("maxEtaMinutes")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5,
+      marginBottom: 12,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, "PRICING & FEES", /*#__PURE__*/React.createElement(Tooltip, {
+    what: "The financial parameters of the platform: what customers are charged, what contractors are paid, and what BailiwickQuikFix retains as platform revenue.",
+    needed: "These numbers directly determine your per-job margin and break-even point. They must be set carefully and changed rarely.",
+    matters: "At the current defaults ($9.99 fee + 15% commission), platform gross profit is ~$19 per $80 avg job \u2014 86% gross margin. Any change to these numbers changes your P&L model."
+  })), row("bookingFee"), row("platformCommission"), row("instantPayoutFee"), row("ratingFloor")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5,
+      marginBottom: 12,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, "SERVICE HOURS", /*#__PURE__*/React.createElement(Tooltip, {
+    what: "The daily window during which dispatch is active and the QuikFix arrival promise applies. Outside this window, jobs are accepted and priced but held for the next morning.",
+    needed: "Service hours set customer expectations and protect contractors from off-hours dispatch.",
+    matters: "The app's footer and the QuikFix badge both reference '7am\u20139pm'. If you change these hours, update all customer-facing copy at the same time."
+  })), row("serviceHoursStart", "text"), row("serviceHoursEnd", "text")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5,
+      marginBottom: 12,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, "SAFETY KEYWORDS", /*#__PURE__*/React.createElement(Tooltip, {
+    what: "The emergency keyword list that the post-LLM validator checks against every customer transcript. Matches trigger urgency='emergency' and block auto-dispatch regardless of AI output.",
+    needed: "The AI can be fooled by casual language \u2014 'it smells kind of weird, maybe gas?' could get low confidence. These keywords guarantee escalation even when the AI is uncertain.",
+    matters: "This is your most important safety control. Every word on this list represents a scenario where a mishandled dispatch could result in injury. Review and update this list every time you expand to a new market or job type."
+  })), row("emergencyKeywords", "text")), /*#__PURE__*/React.createElement(Btn, {
+    label: "Save Configuration",
+    onClick: () => notify("Configuration saved", C.green),
+    variant: "primary",
+    size: "md"
+  }));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   USER GUIDE TAB
+═══════════════════════════════════════════════════════════ */
+function UserGuideTab() {
+  const [sel, setSel] = useState("overview");
+  const sections = {
+    overview: {
+      title: "Console Overview",
+      icon: "⚡"
+    },
+    dispatch: {
+      title: "Dispatch & Jobs",
+      icon: "📡"
+    },
+    review: {
+      title: "Review Queue",
+      icon: "🧑‍💼"
+    },
+    pros: {
+      title: "Managing Pros",
+      icon: "🔧"
+    },
+    analytics: {
+      title: "Analytics",
+      icon: "📊"
+    },
+    agents: {
+      title: "AI Agents",
+      icon: "🤖"
+    },
+    prompts: {
+      title: "Prompts",
+      icon: "💬"
+    },
+    settings: {
+      title: "Settings",
+      icon: "⚙️"
+    },
+    escalation: {
+      title: "Escalation Protocol",
+      icon: "🚨"
+    },
+    daily: {
+      title: "Daily Ops Checklist",
+      icon: "✅"
+    }
+  };
+  const content = {
+    overview: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "The Bailiwick Console is the operational command center for BailiwickQuikFix. It gives your ops team real-time visibility into every job, contractor, and AI agent across all four markets."), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: C.blue,
+        letterSpacing: 1.5,
+        marginBottom: 10
+      }
+    }, "THE 8 TABS AT A GLANCE"), [["⚡ Overview", "Your real-time dashboard — KPIs, active jobs, pro availability, activity feed"], ["📡 Dispatch", "Full job pipeline — filter by status, see confidence and ETAs for every job"], ["🧑‍💼 Review Queue", "Jobs held for human decision — approve, override, decline, or escalate"], ["🔧 Pros", "Contractor roster — verify new pros, manage statuses, view trust scores"], ["📊 Analytics", "KPIs, job type mix, AI performance, revenue by market"], ["🤖 AI Agents", "Health status of all 9 Claude agents powering the dispatch pipeline"], ["💬 Prompts", "View and version-control the prompts that power the AI pipeline"], ["⚙️ Settings", "Configure confidence thresholds, fees, service hours, safety keywords"]].map(([tab, desc]) => /*#__PURE__*/React.createElement("div", {
+      key: tab,
+      style: {
+        display: "flex",
+        gap: 12,
+        padding: "8px 0",
+        borderBottom: `1px solid ${C.border}`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.text,
+        minWidth: 140
+      }
+    }, tab), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: C.muted
+      }
+    }, desc)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.greenBg,
+        border: `1px solid ${C.green}33`,
+        borderRadius: 10,
+        padding: "12px 14px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: C.green,
+        marginBottom: 6
+      }
+    }, "HOVER ? ICONS FOR HELP"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: C.sub,
+        lineHeight: 1.65,
+        margin: 0
+      }
+    }, "Every section, KPI, and action button has a ? tooltip. Click it for three-part guidance: what the element is and does, why it's needed, and why it matters to your business. Use these when onboarding new ops team members."))),
+    dispatch: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "The Dispatch tab shows every job that has entered the platform \u2014 from the moment a customer submits to completion. Use the status filters to find the jobs that need your attention."), [["Tier Dots", "The colored dot at the left of each job card indicates its dispatch tier. Green = auto-dispatched (confidence ≥90%). Amber = in human review. Red = escalated to safety team."], ["Confidence Score", "The AI's certainty score for its classification and pricing. Below 90% = human review required. Below 75% = likely misclassified."], ["ETA Counter", "Drive time in minutes from pro location to customer at dispatch time. Above 30 min = QuikFix SLA at risk."], ["QuikFix ⚡ Badge", "Shown only when all eligibility criteria were met: single repair, confidence ≥90%, no hazards, pro within 30 min drive."], ["Status Filter", "Filter by: All | Matched | En Route | Review | Escalated | Complete. Check Escalated first every shift."]].map(([label, desc]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 10,
+        padding: "12px 14px",
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.text,
+        marginBottom: 4
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: C.muted,
+        lineHeight: 1.6
+      }
+    }, desc)))),
+    review: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "The Review Queue holds jobs the AI could not auto-dispatch. Your ops team must clear this queue within 2 hours. Here are your four actions and when to use each."), [{
+      action: "✓ Approve at AI Rate",
+      color: C.green,
+      when: "Use when: The transcript is clear, the job type is correct, and the AI rate is accurate. The job is simply below 90% confidence due to wording, not actual ambiguity."
+    }, {
+      action: "Override to New Rate",
+      color: C.amber,
+      when: "Use when: The scope is larger than the AI estimated (e.g., 'big hole' in a drywall patch). Set a more accurate price before dispatching."
+    }, {
+      action: "Decline",
+      color: C.muted,
+      when: "Use when: The job is outside your service area, the repair type is not in your catalog, or the customer's situation cannot be safely handled by your contractor network."
+    }, {
+      action: "🚨 Escalate to Safety",
+      color: C.red,
+      when: "Use when: A HAZARD flag is present (gas, fire, flooding, electrical sparking). Do not dispatch until the safety team clears the situation. Consider calling the customer directly."
+    }].map(({
+      action,
+      color,
+      when
+    }) => /*#__PURE__*/React.createElement("div", {
+      key: action,
+      style: {
+        background: C.lift,
+        border: `1.5px solid ${color}44`,
+        borderRadius: 10,
+        padding: "12px 14px",
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color,
+        marginBottom: 4
+      }
+    }, action), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: C.muted,
+        lineHeight: 1.6
+      }
+    }, when))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.redBg,
+        border: `1px solid ${C.red}44`,
+        borderRadius: 10,
+        padding: "12px 14px",
+        marginTop: 4
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: C.red,
+        marginBottom: 4
+      }
+    }, "CRITICAL: NEVER SKIP ESCALATION"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: C.sub,
+        lineHeight: 1.65,
+        margin: 0
+      }
+    }, "A HAZARD-flagged job must be escalated. No exceptions. Approving a gas smell job for standard dispatch without safety clearance is a platform liability that could result in injury and legal action."))),
+    pros: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "The Pros tab is your contractor roster management tool. Use it to verify new contractors, monitor active status, and suspend pros who violate platform policies."), [["Trust Score", "Composite 0–100 score. Components: Identity (20), Background (20), License (20), COI (20), Rating ≥4.0 (10), Job Count (10). Shown to customers as a 0–10 bar."], ["Pending Status", "A pro in Pending status has applied but not yet completed all vetting steps. Do not approve dispatch until Trust Score is at least 80 (all verifications complete)."], ["Approve Button", "Marks the contractor as verified and sets their status to Online. Only appears for Pending pros. Confirm Checkr, Persona, license, and COI before clicking."], ["Suspend Button", "Sets the pro's status to Offline and removes them from dispatch eligibility. Use for: complaints under investigation, insurance lapse, repeated no-shows."], ["Rating Floor", "Contractors with a rolling average below 4.0 for 3 consecutive jobs are automatically flagged. The platform cannot maintain trust with sub-4.0 contractors."]].map(([label, desc]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 10,
+        padding: "12px 14px",
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.text,
+        marginBottom: 4
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: C.muted,
+        lineHeight: 1.6
+      }
+    }, desc)))),
+    analytics: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "Analytics gives you performance visibility across the platform \u2014 daily and weekly KPIs, AI pipeline health, job type mix, and revenue by market."), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: C.blue,
+        letterSpacing: 1.5,
+        marginBottom: 10
+      }
+    }, "KEY TARGETS TO TRACK DAILY"), [["SLA Met Rate", "≥92% — below 90% triggers an alert. Investigate pro locations and geofence coverage immediately."], ["QuikFix Rate", "≥80% — below 70% means the platform is defaulting to standard dispatch for most jobs, which weakens the brand."], ["Review Rate", "≤12% — above 15% means ops team is overwhelmed and the AI needs prompt work."], ["AI Confidence", "≥87% avg — below 82% means the pipeline is struggling with your current job mix."], ["AI Latency", "≤3s p95 — above 4s means customers are seeing a broken experience on the pricing screen."]].map(([metric, target]) => /*#__PURE__*/React.createElement("div", {
+      key: metric,
+      style: {
+        display: "flex",
+        gap: 12,
+        padding: "8px 0",
+        borderBottom: `1px solid ${C.border}`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.text,
+        minWidth: 140
+      }
+    }, metric), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: C.muted
+      }
+    }, target))))),
+    agents: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "The AI Agents tab shows the live health of all 9 Claude-powered agents. Check this at the start of every shift. A degraded agent can silently break dispatch without triggering a customer-visible error."), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: C.blue,
+        letterSpacing: 1.5,
+        marginBottom: 10
+      }
+    }, "STATUS MEANINGS"), [["Active (green pulse)", "Agent is running and processing calls normally."], ["Waiting (amber)", "Agent is running but has no current workload. Normal for Human Review during quiet periods."], ["Idle (gray)", "Agent has not run recently. Normal for Training (runs nightly). Abnormal for Intake, Pricing, or Dispatch during service hours."], ["Error (red) — if shown", "Agent has failed. Investigate immediately. Check Claude API status and server logs."]].map(([s, d]) => /*#__PURE__*/React.createElement("div", {
+      key: s,
+      style: {
+        display: "flex",
+        gap: 12,
+        padding: "8px 0",
+        borderBottom: `1px solid ${C.border}`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.text,
+        minWidth: 180
+      }
+    }, s), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: C.muted
+      }
+    }, d)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 16
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: C.blue,
+        letterSpacing: 1.5,
+        marginBottom: 10
+      }
+    }, "CRITICAL AGENTS (check first)"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: C.muted,
+        lineHeight: 1.7
+      }
+    }, "Intake, Classification, Pricing, and Dispatch are the pipeline core \u2014 if any of these are not Active during service hours, jobs cannot flow. Comms failure means contractors aren't getting alerts. Payment failure means captured jobs don't trigger payouts."))),
+    prompts: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "Prompts are the instructions sent to Claude for each pipeline stage. View them here. Never edit a live prompt directly."), [["View Only — Never Edit Live", "The prompt viewer is read-only for production prompts. Any changes must go through: New Version → Staging Test → A/B Accuracy Check → Promote."], ["Versioning", "Each prompt has a semver (v2.4, v3.1, etc.) and an author. The accuracy percentage is measured against a monthly human review dataset."], ["When to Update a Prompt", "Update when: a repair category consistently gets low confidence, a new job type is added to the catalog, or a real-world transcript pattern causes misclassification."], ["The Staging Process", "1. Create new version. 2. Run 50 sample transcripts through it. 3. Compare accuracy to current version. 4. If improvement ≥1%, promote. 5. Monitor for 24 hours."], ["Emergency Rollback", "If a promoted prompt causes accuracy to drop or schema errors to spike, roll back to the previous version immediately from the Prompts tab. Do not patch — rollback first, investigate second."]].map(([label, desc]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 10,
+        padding: "12px 14px",
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.text,
+        marginBottom: 4
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: C.muted,
+        lineHeight: 1.6
+      }
+    }, desc)))),
+    settings: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "Settings controls the operational parameters of the platform. Changes take effect immediately across all markets. Test changes on one market first when possible."), [["QuikFix Min Confidence", "Controls the line between auto-dispatch and human review. Default 90%. Do not set below 80%."], ["Review SLA", "How long before an uncleared review queue job triggers an alert. Default 120 min. Reduce to 60 min during high-volume periods."], ["Booking Fee", "Customer-facing fee. Visible on the Confirm screen. Changes affect conversion rate — A/B test before rolling out."], ["Platform Commission", "Your primary revenue lever. Changing this affects both your margin and contractor retention. Model the impact before editing."], ["Emergency Keywords", "Your safety override list. Add words liberally. Never remove gas, fire, smoke, flood, sparking."], ["Service Hours", "When dispatch is active. If you change these, update all customer-facing copy (app footer, marketing) at the same time."]].map(([label, desc]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        background: C.lift,
+        border: `1px solid ${C.border}`,
+        borderRadius: 10,
+        padding: "12px 14px",
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.text,
+        marginBottom: 4
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: C.muted,
+        lineHeight: 1.6
+      }
+    }, desc)))),
+    escalation: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "Escalation protocol for emergency and hazard situations. Every ops team member must know this before their first shift."), [{
+      level: "HAZARD — Gas, Fire, Smoke",
+      color: C.red,
+      steps: ["Do not approve for dispatch", "Click 'Escalate to Safety Team' in the review queue", "Safety team contacts the customer directly", "If customer confirms an emergency, advise them to call 911 immediately", "Do not dispatch any contractor until safety team clears the situation", "Log the event with full context in the audit trail"]
+    }, {
+      level: "HAZARD — Flooding, Major Electrical",
+      color: C.amber,
+      steps: ["Hold from auto-dispatch", "Assess via transcript — is the flooding active? Is the electrical live?", "If active emergency, escalate to safety", "If situation is stable, assign to a licensed plumber/electrician manually with a note", "Document the decision and reasoning"]
+    }, {
+      level: "Customer No-Show",
+      color: C.muted,
+      steps: ["Contractor marks 'No Customer' in the Pro App", "Ops team contacts customer within 10 minutes", "If unreachable after 20 minutes, release contractor and refund booking fee", "Log the no-show against the customer record"]
+    }, {
+      level: "Contractor No-Show",
+      color: C.amber,
+      steps: ["Customer escalates via app or SMS", "Ops dispatches next available contractor immediately", "Full refund of booking fee to customer — do not wait for their request", "Flag contractor for review — 3 no-shows = suspension"]
+    }].map(({
+      level,
+      color,
+      steps
+    }) => /*#__PURE__*/React.createElement("div", {
+      key: level,
+      style: {
+        background: C.lift,
+        border: `1.5px solid ${color}44`,
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 800,
+        color,
+        marginBottom: 8
+      }
+    }, level), steps.map((s, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "flex",
+        gap: 8,
+        marginBottom: 4
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: color,
+        fontWeight: 700,
+        fontSize: 11,
+        flexShrink: 0
+      }
+    }, i + 1, "."), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: C.muted
+      }
+    }, s)))))),
+    daily: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 14,
+        color: C.sub,
+        lineHeight: 1.7,
+        marginBottom: 16
+      }
+    }, "Run this checklist at the start of every ops shift. Takes less than 5 minutes."), [{
+      time: "First 2 min",
+      color: C.red,
+      items: ["Open Review Queue tab — are there any HAZARD-flagged jobs? Escalate immediately.", "Check AI Agents tab — are all active agents showing green pulse?", "Check today's SLA % — is it above 90%?"]
+    }, {
+      time: "Next 2 min",
+      color: C.amber,
+      items: ["Check Pro Availability panel — are there at least 2 online pros per market?", "Review any jobs that have been En Route for more than 40 minutes", "Clear any review queue items that are approaching the 2-hour SLA"]
+    }, {
+      time: "End of shift",
+      color: C.green,
+      items: ["Review the day's cancellation rate — above 8%? Investigate.", "Note any repeat misclassification patterns for prompt team", "Check if any contractor's COI or license is flagged for renewal", "Review Activity Feed for any anomalies"]
+    }].map(({
+      time,
+      color,
+      items
+    }) => /*#__PURE__*/React.createElement("div", {
+      key: time,
+      style: {
+        background: C.lift,
+        border: `1.5px solid ${color}44`,
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color,
+        marginBottom: 8,
+        letterSpacing: 1
+      }
+    }, time.toUpperCase()), items.map((item, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "flex",
+        gap: 8,
+        marginBottom: 4,
+        alignItems: "flex-start"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 12,
+        height: 12,
+        borderRadius: 2,
+        border: `1.5px solid ${color}`,
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: C.muted,
+        lineHeight: 1.5
+      }
+    }, item))))))
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 14,
+      height: "calc(100vh - 160px)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 180,
+      flexShrink: 0,
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 10,
+      overflowY: "auto"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 700,
+      color: C.muted,
+      letterSpacing: 1.5,
+      padding: "8px 10px 6px"
+    }
+  }, "GUIDE SECTIONS"), Object.entries(sections).map(([id, {
+    title,
+    icon
+  }]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => setSel(id),
+    style: {
+      width: "100%",
+      textAlign: "left",
+      fontFamily: font,
+      fontSize: 11,
+      fontWeight: sel === id ? 700 : 500,
+      cursor: "pointer",
+      borderRadius: 8,
+      padding: "8px 10px",
+      marginBottom: 2,
+      background: sel === id ? C.blue + "22" : "transparent",
+      color: sel === id ? C.blue : C.muted,
+      border: `1px solid ${sel === id ? C.blue + "55" : "transparent"}`,
+      display: "flex",
+      alignItems: "center",
+      gap: 7
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12
+    }
+  }, icon), title))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      background: C.card,
+      border: `1px solid ${C.border}`,
+      borderRadius: 14,
+      padding: 20,
+      overflowY: "auto"
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 18,
+      fontWeight: 800,
+      color: C.text,
+      marginBottom: 4,
+      letterSpacing: -0.3
+    }
+  }, sections[sel]?.icon, " ", sections[sel]?.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 1,
+      background: C.border,
+      marginBottom: 16
+    }
+  }), content[sel]));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ROOT
+═══════════════════════════════════════════════════════════ */
+const TABS = [{
+  id: "overview",
+  label: "Overview",
+  icon: "⚡"
+}, {
+  id: "dispatch",
+  label: "Dispatch",
+  icon: "📡"
+}, {
+  id: "review",
+  label: "Review Queue",
+  icon: "🧑‍💼",
+  badge: 2
+}, {
+  id: "pros",
+  label: "Pros",
+  icon: "🔧"
+}, {
+  id: "analytics",
+  label: "Analytics",
+  icon: "📊"
+}, {
+  id: "agents",
+  label: "AI Agents",
+  icon: "🤖"
+}, {
+  id: "prompts",
+  label: "Prompts",
+  icon: "💬"
+}, {
+  id: "settings",
+  label: "Settings",
+  icon: "⚙️"
+}, {
+  id: "guide",
+  label: "User Guide",
+  icon: "📖"
+}];
+function Console() {
+  const [tab, setTab] = useState("overview");
+  const [jobs, setJobs] = useState(SEED.jobs);
+  const [pros, setPros] = useState(SEED.pros);
+  const [queue, setQueue] = useState(SEED.review);
+  const [agents] = useState(SEED.agents);
+  const [toast, setToast] = useState(null);
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  function notify(msg, color = C.green) {
+    setToast({
+      msg,
+      color
+    });
+    setTimeout(() => setToast(null), 2800);
+  }
+  function resolveReview(id, action) {
+    setQueue(q => q.filter(j => j.id !== id));
+    if (action !== "decline" && action !== "escalate") {
+      setJobs(prev => prev.map(j => j.id === id ? {
+        ...j,
+        status: "matched",
+        tier: "auto"
+      } : j));
+    } else {
+      setJobs(prev => prev.map(j => j.id === id ? {
+        ...j,
+        status: action === "escalate" ? "escalated" : "declined"
+      } : j));
+    }
+  }
+  function updatePro(id, action) {
+    setPros(prev => prev.map(p => p.id === id ? action === "verify" ? {
+      ...p,
+      verified: true,
+      status: "online"
+    } : action === "suspend" ? {
+      ...p,
+      status: "offline"
+    } : p : p));
+  }
+  const activeCount = jobs.filter(j => ["enroute", "matched"].includes(j.status)).length;
+  const reviewCount = queue.length;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: C.bg,
+      fontFamily: font,
+      color: C.text
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "sticky",
+      top: 0,
+      zIndex: 50,
+      background: C.bg + "F2",
+      backdropFilter: "blur(20px)",
+      borderBottom: `1px solid ${C.border}`,
+      height: 52,
+      display: "flex",
+      alignItems: "center",
+      padding: "0 20px",
+      justifyContent: "space-between"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.text,
+      letterSpacing: -0.3
+    }
+  }, "Bailiwick", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.red
+    }
+  }, "QuikFix")), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: C.muted,
+      marginLeft: 8
+    }
+  }, "Console")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 5,
+      background: C.greenBg,
+      border: `1px solid ${C.green}44`,
+      borderRadius: 100,
+      padding: "3px 10px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      width: 6,
+      height: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      borderRadius: "50%",
+      background: C.green,
+      opacity: 0.4,
+      animation: "ping 2s ease-in-out infinite"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 6,
+      height: 6,
+      borderRadius: "50%",
+      background: C.green,
+      position: "relative"
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 9,
+      fontWeight: 700,
+      color: C.green,
+      letterSpacing: 1
+    }
+  }, "LIVE"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 14,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.muted
+    }
+  }, activeCount, " active \xB7 ", reviewCount, " in review"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      fontFamily: "monospace"
+    }
+  }, time.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  })))), toast && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      top: 62,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: C.card,
+      border: `1px solid ${toast.color}44`,
+      borderRadius: 10,
+      padding: "10px 20px",
+      fontSize: 13,
+      fontWeight: 700,
+      color: toast.color,
+      zIndex: 9998,
+      boxShadow: "0 8px 32px #00000066",
+      animation: "up 0.3s ease",
+      whiteSpace: "nowrap"
+    }
+  }, toast.msg), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      height: "calc(100vh - 52px)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 200,
+      flexShrink: 0,
+      background: C.surf,
+      borderRight: `1px solid ${C.border}`,
+      padding: "16px 10px",
+      overflowY: "auto"
+    }
+  }, TABS.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t.id,
+    onClick: () => setTab(t.id),
+    style: {
+      width: "100%",
+      textAlign: "left",
+      fontFamily: font,
+      fontSize: 12,
+      fontWeight: 600,
+      cursor: "pointer",
+      borderRadius: 9,
+      padding: "9px 12px",
+      marginBottom: 3,
+      background: tab === t.id ? C.blue + "22" : "transparent",
+      color: tab === t.id ? C.blue : C.muted,
+      border: `1px solid ${tab === t.id ? C.blue + "55" : "transparent"}`,
+      transition: "all 0.15s",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14
+    }
+  }, t.icon), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, t.label), t.badge > 0 && queue.length > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: C.red,
+      color: "#fff",
+      borderRadius: "50%",
+      fontSize: 9,
+      fontWeight: 800,
+      padding: "1px 5px",
+      minWidth: 16,
+      textAlign: "center"
+    }
+  }, queue.length))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "auto",
+      paddingTop: 20,
+      borderTop: `1px solid ${C.border}`,
+      fontSize: 10,
+      color: C.muted,
+      padding: "16px 12px 0"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 4
+    }
+  }, "v2.0 + Tooltips"), /*#__PURE__*/React.createElement("div", null, "\xA9 2026 BailiwickQuikFix"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      overflowY: "auto",
+      padding: "20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 960,
+      margin: "0 auto"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 16,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: C.text,
+      letterSpacing: -0.3,
+      margin: 0
+    }
+  }, TABS.find(t => t.id === tab)?.label), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: C.muted,
+      margin: "3px 0 0"
+    }
+  }, "BailiwickQuikFix Command Center \xB7 ", time.toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric"
+  }))), tab === "review" && queue.length > 0 && /*#__PURE__*/React.createElement(Badge, {
+    label: `${queue.length} pending · SLA: 2 hrs`,
+    color: C.amber
+  })), tab === "overview" && /*#__PURE__*/React.createElement(OverviewTab, {
+    jobs: jobs,
+    pros: pros,
+    metrics: SEED.metrics,
+    onTabChange: setTab
+  }), tab === "dispatch" && /*#__PURE__*/React.createElement(DispatchTab, {
+    jobs: jobs,
+    pros: pros
+  }), tab === "review" && /*#__PURE__*/React.createElement(ReviewTab, {
+    queue: queue,
+    onResolve: resolveReview,
+    notify: notify
+  }), tab === "pros" && /*#__PURE__*/React.createElement(ProsTab, {
+    pros: pros,
+    onUpdate: updatePro,
+    notify: notify
+  }), tab === "analytics" && /*#__PURE__*/React.createElement(AnalyticsTab, {
+    metrics: SEED.metrics
+  }), tab === "agents" && /*#__PURE__*/React.createElement(AgentsTab, {
+    agents: agents
+  }), tab === "prompts" && /*#__PURE__*/React.createElement(PromptsTab, null), tab === "settings" && /*#__PURE__*/React.createElement(SettingsTab, {
+    notify: notify
+  }), tab === "guide" && /*#__PURE__*/React.createElement(UserGuideTab, null)))), /*#__PURE__*/React.createElement("style", null, `
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
+        @keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.8);opacity:0.3}}
+        @keyframes wv{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        ::-webkit-scrollbar{width:4px;height:4px;}
+        ::-webkit-scrollbar-thumb{background:#1c2f4a;border-radius:2px;}
+      `));
+}
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Console));
+  </script>
+<div id="qf-nav" style="position:fixed;bottom:16px;right:16px;z-index:99999;display:flex;gap:8px;font-family:monospace;font-size:11px;">
+  <a href="index.html" style="background:#1A1A1A;color:#00FF88;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Customer</a>
+  <a href="pro.html" style="background:#1A1A1A;color:#3B82F6;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Pro App</a>
+  <a href="console.html" style="background:#1A1A1A;color:#A78BFA;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Console</a>
+  <a href="architecture.html" style="background:#1A1A1A;color:#888;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Arch</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BailiwickQuikFix — System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-height:100vh;padding:40px 32px 60px;}
+
+/* ── Layout ── */
+.page{max-width:1200px;margin:0 auto;}
+.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid #1c2f4a;}
+.logo{font-size:22px;font-weight:800;letter-spacing:-0.5px;}
+.logo span{color:#d32f2f;}
+.header-right{text-align:right;font-size:11px;color:#3d6080;line-height:1.8;}
+
+/* ── Section Labels ── */
+.layer-label{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#3d6080;margin-bottom:8px;padding-left:4px;}
+
+/* ── Diagram columns ── */
+.arch{display:grid;grid-template-columns:180px 1fr 180px;gap:0;position:relative;}
+.left-col,.right-col{display:flex;flex-direction:column;gap:12px;padding-top:8px;}
+.center-col{display:flex;flex-direction:column;gap:0;padding:0 24px;}
+
+/* ── Cards ── */
+.card{border-radius:12px;padding:14px 16px;border:1px solid #1c2f4a;background:#0c1524;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.card.blue::before{background:#3b82f6;}
+.card.green::before{background:#22c55e;}
+.card.red::before{background:#d32f2f;}
+.card.teal::before{background:#10b981;}
+.card.amber::before{background:#f59e0b;}
+.card.purple::before{background:#a78bfa;}
+.card.mge::before{background:linear-gradient(180deg,#10b981,#3b82f6);}
+
+.card-title{font-size:11px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.card-body{font-size:10px;color:#7baac8;line-height:1.6;}
+.card-tag{font-family:'DM Mono',monospace;font-size:8px;font-weight:500;background:#152540;color:#3d6080;border-radius:4px;padding:2px 6px;display:inline-block;margin-top:4px;}
+
+/* ── MGE Block — special treatment ── */
+.mge-block{background:linear-gradient(135deg,#071a28 0%,#061520 100%);border:1.5px solid #10b981;border-radius:16px;padding:20px;margin:16px 0;position:relative;overflow:hidden;}
+.mge-block::after{content:'LICENSED IP';position:absolute;top:12px;right:14px;font-family:'DM Mono',monospace;font-size:8px;font-weight:500;letter-spacing:1.5px;color:#10b981;background:#10b98118;border:1px solid #10b98133;border-radius:4px;padding:2px 8px;}
+.mge-title{font-size:15px;font-weight:800;color:#10b981;letter-spacing:-0.3px;margin-bottom:3px;display:flex;align-items:center;gap:8px;}
+.mge-sub{font-size:10px;color:#3d6080;margin-bottom:14px;}
+
+.mge-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.mge-component{background:#0a1e30;border:1px solid #1c3a50;border-radius:10px;padding:12px;}
+.mge-component-title{font-size:10px;font-weight:700;color:#e8f2ff;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.mge-component-body{font-size:9px;color:#7baac8;line-height:1.6;}
+
+/* ── Layer rows ── */
+.layer{margin-bottom:0;position:relative;}
+.layer-row{display:grid;gap:10px;margin-bottom:10px;}
+.layer-row.cols2{grid-template-columns:1fr 1fr;}
+.layer-row.cols3{grid-template-columns:1fr 1fr 1fr;}
+.layer-row.cols4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.layer-row.cols1{grid-template-columns:1fr;}
+
+/* ── Flow arrows ── */
+.flow{display:flex;justify-content:center;align-items:center;height:28px;position:relative;}
+.flow-line{width:2px;background:linear-gradient(180deg,#1c2f4a,#3b82f6);height:100%;margin:0 auto;}
+.flow-arrow{text-align:center;font-size:10px;color:#3d6080;font-family:'DM Mono',monospace;letter-spacing:0.5px;}
+.flow-label{background:#070d17;padding:0 10px;font-size:9px;font-family:'DM Mono',monospace;color:#3d6080;white-space:nowrap;position:relative;z-index:2;}
+
+.flow-wide{display:flex;align-items:center;gap:8px;margin:8px 0;padding:6px 14px;background:#0a1524;border:1px dashed #1c3a50;border-radius:8px;}
+.flow-wide-label{font-size:9px;font-family:'DM Mono',monospace;color:#3d6080;letter-spacing:0.5px;}
+.flow-wide-arrow{color:#3b82f6;font-size:12px;}
+
+/* ── Integration pills on sides ── */
+.int-card{background:#0a1524;border:1px solid #1c2f4a;border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.int-icon{font-size:16px;margin-bottom:5px;}
+.int-name{font-size:10px;font-weight:700;color:#e8f2ff;margin-bottom:3px;}
+.int-desc{font-size:9px;color:#3d6080;line-height:1.5;}
+
+/* ── Certified record highlight ── */
+.certified-block{background:linear-gradient(90deg,#052510,#071428);border:1.5px solid #22c55e44;border-radius:12px;padding:14px 16px;margin:6px 0;}
+.certified-title{font-size:10px;font-weight:700;color:#22c55e;margin-bottom:6px;display:flex;align-items:center;gap:6px;letter-spacing:0.5px;}
+.certified-fields{display:flex;flex-wrap:wrap;gap:5px;}
+.cert-field{font-family:'DM Mono',monospace;font-size:8px;background:#0a1e18;border:1px solid #22c55e22;color:#22c55e;border-radius:4px;padding:2px 7px;}
+
+/* ── Legend ── */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px;padding-top:20px;border-top:1px solid #1c2f4a;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:10px;color:#3d6080;}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+
+/* ── Title block ── */
+.diagram-title{font-size:28px;font-weight:800;color:#e8f2ff;letter-spacing:-0.8px;margin-bottom:6px;}
+.diagram-sub{font-size:13px;color:#3d6080;margin-bottom:32px;}
+
+/* ── Pulse animation for LIVE elements ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.pulse{animation:pulse 2s ease-in-out infinite;}
+
+/* ── Section dividers ── */
+.section-band{background:#0a1524;border:1px solid #1c2f4a;border-radius:8px;padding:6px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-band-num{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;color:#3b82f6;background:#071428;border:1px solid #3b82f633;border-radius:4px;padding:1px 8px;}
+.section-band-label{font-size:11px;font-weight:700;color:#7baac8;letter-spacing:0.3px;}
+
+/* ── Side connectors ── */
+.connector-left,.connector-right{position:absolute;top:50%;width:20px;height:1px;background:#1c3a50;}
+.connector-left{left:-20px;}
+.connector-right{right:-20px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="logo">Bailiwick<span>QuikFix</span></div>
+      <div style="font-size:11px;color:#3d6080;margin-top:3px;font-family:'DM Mono',monospace;">System Architecture · FohBoh MGE Integration · v1.6.1</div>
+    </div>
+    <div class="header-right">
+      Confidential  ·  Engineering IP Handoff<br/>
+      April 2026  ·  Joint IP: BailiwickQuikFix + FohBoh.ai
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="diagram-title">System Architecture Diagram</div>
+  <div class="diagram-sub">Six-layer platform architecture · Generative AI + Deterministic Governance · Claude + FohBoh MGE</div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LAYER 1: CUSTOMER INPUT -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section-band">
+    <span class="section-band-num">Layer 1</span>
+    <span class="section-band-label">Customer Input  ·  React 18 PWA  ·  iOS Safari + Chrome Android</span>
+  </div>
+  <div class="layer-row cols3" style="margin-bottom:8px;">
+    <div class="card blue">
+      <div class="card-title" style="color:#3b82f6;">🎙 Voice Intake</div>
+      <div class="card-body">Web Speech API over HTTPS. getUserMedia permission → webkitSpeechRecognition. iOS Safari compatible. Transcript produced in real time.</div>
+      <div class="card-tag">HTTPS required · iOS 14.5+</div>
+    </div>
+    <div class="card blue">
+      <div class="card-title" style="color:#3b82f6;">💬 AI Chat Intake</div>
+      <div class="card-body">Claude conversational dispatcher. ≤3 follow-up questions. READY_TO_DISPATCH signal triggers pipeline. Real Claude API calls.</div>
+      <div class="card-tag">claude-sonnet-4-20250514</div>
+    </div>
+    <div class="card blue">
+      <div class="card-title" style="color:#3b82f6;">📋 Guided Browse</div>
+      <div class="card-body">6 categories · 10 repairs each · multi-select. Text input fallback. All three paths produce a normalized transcript for the AI pipeline.</div>
+      <div class="card-tag">Category + Repair → Transcript</div>
+    </div>
+  </div>
+
+  <div class="flow-wide">
+    <span class="flow-wide-arrow">↓</span>
+    <span class="flow-wide-label">Raw customer transcript → POST /jobs  ·  API Gateway (Node.js + Express)</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LAYER 2: GENERATIVE AI -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section-band" style="margin-top:8px;">
+    <span class="section-band-num">Layer 2</span>
+    <span class="section-band-label">Generative AI Pipeline  ·  Anthropic Claude API  ·  Temp 0.1  ·  Max 1024 tokens</span>
+  </div>
+  <div class="layer-row cols2" style="margin-bottom:8px;">
+    <div class="card red">
+      <div class="card-title" style="color:#ff5252;">Stage 1 — Extract (Intake + Classification)</div>
+      <div class="card-body">Receives raw transcript. Classifies job_type (plumbing / electrical / drywall / appliance / door_window / other). Extracts specific_fix, urgency, estimated_minutes, dispatch_instructions. Assigns confidence score. Returns structured JSON.</div>
+      <div class="card-tag">Prompt v2.4  ·  &lt;1.5s avg</div>
+    </div>
+    <div class="card red">
+      <div class="card-title" style="color:#ff5252;">Stage 2 — Price</div>
+      <div class="card-body">Receives Stage 1 output. Looks up flat_rate_usd from catalog. Calculates QuikFix eligibility pre-conditions. Sets confidence score. Returns complete job ticket JSON including sla_target_minutes and questions_for_user[].</div>
+      <div class="card-tag">Prompt v1.8  ·  &lt;1.2s avg</div>
+    </div>
+  </div>
+
+  <div class="flow-wide">
+    <span class="flow-wide-arrow">↓</span>
+    <span class="flow-wide-label">Raw AI output JSON → MGE Certified Metrics API  ·  "AI is advisory — MGE is authoritative"</span>
+    <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;color:#10b981;background:#10b98118;border:1px solid #10b98133;border-radius:4px;padding:2px 8px;">TRUST BOUNDARY</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LAYER 3: FOHBOH MGE -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section-band" style="margin-top:8px;">
+    <span class="section-band-num">Layer 3</span>
+    <span class="section-band-label">FohBoh MGE — Metric Governance Engine  ·  Licensed IP  ·  Deterministic · Version-Controlled</span>
+    <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:8px;color:#10b981;">fohboh.ai</span>
+  </div>
+
+  <div class="mge-block">
+    <div class="mge-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#10b981" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      FohBoh Metric Governance Engine (MGE)
+    </div>
+    <div class="mge-sub">Proprietary licensed technology · Certified System of Record for all platform metrics · Same input always produces same output</div>
+
+    <div class="mge-grid">
+      <div class="mge-component">
+        <div class="mge-component-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#10b981" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span style="color:#10b981;">KPI Registry</span>
+        </div>
+        <div class="mge-component-body">Version-controlled database of all metric formulas. Trust Score weights, QuikFix conditions, revenue calculations — all formulas live here. Every system reads from one canonical source. No independent calculation permitted.</div>
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;">
+          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">trust_score_v3.2</span>
+          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">quikfix_eligibility_v1.4</span>
+          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">job_revenue_v2.1</span>
+        </div>
+      </div>
+
+      <div class="mge-component" style="border-color:#d32f2f33;">
+        <div class="mge-component-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="#d32f2f22" stroke="#d32f2f" stroke-width="1.8"/></svg>
+          <span style="color:#ff5252;">Trust Firewall</span>
+        </div>
+        <div class="mge-component-body">Rules-based blocking engine. If data is incomplete or invalid, the metric is blocked — not penalized. Dispatch cannot proceed past a blocked metric. Deterministic, not probabilistic.</div>
+        <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:8px;color:#3d6080;line-height:1.7;">
+          IF coi_expired → BLOCK dispatch<br/>
+          IF confidence &lt; threshold → BLOCK quikfix<br/>
+          IF hazard_keyword → BLOCK auto_dispatch<br/>
+          IF location_stale &gt; 5min → BLOCK eta_cert
+        </div>
+      </div>
+
+      <div class="mge-component" style="border-color:#3b82f633;">
+        <div class="mge-component-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#3b82f6" stroke-width="1.8"/><path d="M12 8v4l2 2" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span style="color:#3b82f6;">Certified Metrics API</span>
+        </div>
+        <div class="mge-component-body">The single endpoint all subsystems call. Returns certified Trust Score, QuikFix status, revenue figures, and dispatch tier. Response includes mge_version + timestamp. No system calculates metrics independently.</div>
+        <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:8px;color:#3d6080;line-height:1.7;">
+          GET /mge/trust-score/:proId<br/>
+          GET /mge/quikfix/:jobId<br/>
+          POST /mge/certify-job<br/>
+          GET /mge/job-revenue/:jobId
+        </div>
+      </div>
+    </div>
+
+    <!-- Certified Job Record output -->
+    <div class="certified-block" style="margin-top:14px;">
+      <div class="certified-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="1.5"/></svg>
+        MGE OUTPUT → CERTIFIED JOB RECORD (Immutable · Version-Stamped)
+      </div>
+      <div class="certified-fields">
+        <span class="cert-field">certified_job_type</span>
+        <span class="cert-field">certified_flat_rate_usd</span>
+        <span class="cert-field">certified_confidence</span>
+        <span class="cert-field">certified_quikfix_eligible</span>
+        <span class="cert-field">certified_urgency</span>
+        <span class="cert-field">dispatch_tier</span>
+        <span class="cert-field">mge_version</span>
+        <span class="cert-field">mge_timestamp</span>
+        <span class="cert-field">blocking_conditions_triggered[]</span>
+        <span class="cert-field">contractor_trust_score</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-wide" style="margin-top:4px;">
+    <span class="flow-wide-arrow">↓</span>
+    <span class="flow-wide-label">Certified Job Record → all downstream systems  ·  No raw AI output used beyond this point</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LAYER 4: DISPATCH -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section-band" style="margin-top:8px;">
+    <span class="section-band-num">Layer 4</span>
+    <span class="section-band-label">Dispatch Engine  ·  PostGIS + Mapbox + Redis + Twilio</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:8px;">
+    <div class="card teal">
+      <div class="card-title" style="color:#10b981;">PostGIS Pre-filter</div>
+      <div class="card-body">ST_DWithin 20-mile crow-flies. Online pros matching trade type. &lt;10ms. Returns top 10 candidates sorted by distance.</div>
+      <div class="card-tag">PostgreSQL + PostGIS</div>
+    </div>
+    <div class="card teal">
+      <div class="card-title" style="color:#10b981;">Mapbox Isochrone</div>
+      <div class="card-body">30-min drive-time polygon around customer. Live traffic. Confirms which candidates are actually within 30 min. $0.60/1K calls.</div>
+      <div class="card-tag">Drive-time not miles</div>
+    </div>
+    <div class="card teal">
+      <div class="card-title" style="color:#10b981;">Redis Pro Locations</div>
+      <div class="card-body">Pro GPS pings every 2 min. 5-min TTL. Stale location = Unknown. Used for drive-time calculation and ETA certification.</div>
+      <div class="card-tag">Upstash Redis · TTL-based</div>
+    </div>
+    <div class="card teal">
+      <div class="card-title" style="color:#10b981;">Twilio Dispatch SMS</div>
+      <div class="card-body">Job alert to top candidate. FCM push fallback. 28-second countdown. Auto-routes to next pro if no response within timer.</div>
+      <div class="card-tag">SMS + FCM push</div>
+    </div>
+  </div>
+
+  <!-- Review Queue branch -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:8px;">
+    <div class="flow-wide" style="margin:0;">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;color:#22c55e;">tier=auto →</span>
+      <span class="flow-wide-arrow">↓</span>
+      <span class="flow-wide-label">Pro dispatched · Customer notified · Job active</span>
+    </div>
+    <div class="card amber" style="margin:0;">
+      <div class="card-title" style="color:#f59e0b;font-size:10px;">tier=review / escalate</div>
+      <div class="card-body" style="font-size:9px;">Human Review Queue. Ops team: approve / override / decline / escalate to safety. All decisions create new Certified Job Record via MGE.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LAYER 5: JOB EXECUTION -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section-band" style="margin-top:4px;">
+    <span class="section-band-num">Layer 5</span>
+    <span class="section-band-label">Job Execution  ·  Pro PWA + Stripe Connect + S3 + SSE</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;">
+    <div class="card green" style="padding:10px 12px;">
+      <div class="card-title" style="color:#22c55e;font-size:10px;">Pro Accepts</div>
+      <div class="card-body" style="font-size:9px;">28s countdown. Accept → stage set En Route. Decline / timeout → next pro alerted.</div>
+    </div>
+    <div class="card green" style="padding:10px 12px;">
+      <div class="card-title" style="color:#22c55e;font-size:10px;">En Route</div>
+      <div class="card-body" style="font-size:9px;">Pro location → customer live map via SSE. ETA countdown. Customer sees pro name, photo, vehicle.</div>
+    </div>
+    <div class="card green" style="padding:10px 12px;">
+      <div class="card-title" style="color:#22c55e;font-size:10px;">Arrived + In Progress</div>
+      <div class="card-body" style="font-size:9px;">Before photo required (geo-stamped, S3). Stage updates → SSE. In-app encrypted messaging.</div>
+    </div>
+    <div class="card green" style="padding:10px 12px;">
+      <div class="card-title" style="color:#22c55e;font-size:10px;">Complete</div>
+      <div class="card-body" style="font-size:9px;">After photo required. Stripe capture triggered. Tip distributed. Payout initiated via Stripe Connect.</div>
+    </div>
+    <div class="card green" style="padding:10px 12px;">
+      <div class="card-title" style="color:#22c55e;font-size:10px;">Rating</div>
+      <div class="card-body" style="font-size:9px;">1–5 stars. Tags. Note. MGE recertifies Trust Score with new rating component.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LAYER 6: GOVERNANCE -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section-band" style="margin-top:4px;">
+    <span class="section-band-num">Layer 6</span>
+    <span class="section-band-label">Governance & Intelligence  ·  Console + MGE Analytics + Training Flywheel</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px;">
+    <div class="card purple">
+      <div class="card-title" style="color:#a78bfa;">Bailiwick Console</div>
+      <div class="card-body">WebSocket dispatch feed. Review queue management. Pro roster. 8-tab ops dashboard. All metrics displayed from MGE Certified Metrics API — no independent calculations.</div>
+      <div class="card-tag">React 18 · WebSocket</div>
+    </div>
+    <div class="card purple">
+      <div class="card-title" style="color:#a78bfa;">MGE Analytics Certification</div>
+      <div class="card-body">Analytics Agent calls MGE to certify all post-job KPIs before storage. SLA rate, QuikFix rate, revenue, AI confidence — all certified figures. No uncertified metrics in the database.</div>
+      <div class="card-tag">Nightly + real-time</div>
+    </div>
+    <div class="card purple">
+      <div class="card-title" style="color:#a78bfa;">Training Flywheel</div>
+      <div class="card-body">Training Agent stages anonymized completed job records. Because records are MGE-certified, training data is governed — not raw AI output. Model improves against certified baseline.</div>
+      <div class="card-tag">MGE-certified training data</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- INTEGRATION ECOSYSTEM -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div style="border-top:1px solid #1c2f4a;padding-top:24px;margin-bottom:24px;">
+    <div class="layer-label">Third-Party Integration Ecosystem</div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+      <div class="int-card">
+        <div class="int-icon">🔵</div>
+        <div class="int-name">Anthropic Claude</div>
+        <div class="int-desc">claude-sonnet-4-20250514 · Stages 1 & 2 · Chatbot</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🟢</div>
+        <div class="int-name">FohBoh MGE</div>
+        <div class="int-desc">Trust Firewall · KPI Registry · Certified API · Licensed IP</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🟣</div>
+        <div class="int-name">Stripe Connect</div>
+        <div class="int-desc">Pre-auth · Capture · Payouts · Apple Pay</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🔵</div>
+        <div class="int-name">Persona</div>
+        <div class="int-desc">Gov ID + selfie · Webhook on completion</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🟤</div>
+        <div class="int-name">Checkr</div>
+        <div class="int-desc">Criminal BG · Sex offender · Watchlist · Webhook</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🔴</div>
+        <div class="int-name">Twilio + FCM</div>
+        <div class="int-desc">Job alerts · SMS dispatch · Status updates</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🟦</div>
+        <div class="int-name">Mapbox</div>
+        <div class="int-desc">Isochrone API · Live tracking · $0.60/1K</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🟠</div>
+        <div class="int-name">AWS S3 + CDN</div>
+        <div class="int-desc">Photos · Transcripts · COI docs</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🟢</div>
+        <div class="int-name">Supabase</div>
+        <div class="int-desc">PostgreSQL + PostGIS · Row-level security</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🔴</div>
+        <div class="int-name">Upstash Redis</div>
+        <div class="int-desc">Pro locations · Job queue · TTL-based</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🟤</div>
+        <div class="int-name">Vercel + Railway</div>
+        <div class="int-desc">Auto-HTTPS · PWA hosting · CI/CD</div>
+      </div>
+      <div class="int-card">
+        <div class="int-icon">🔵</div>
+        <div class="int-name">Sentry + Datadog</div>
+        <div class="int-desc">Error tracking · API latency · AI pipeline APM</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div> Customer Layer</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d32f2f;"></div> Claude AI (Generative)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981;border:1px solid #22c55e;"></div> FohBoh MGE (Deterministic · Licensed IP)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Human Review</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div> Job Execution</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div> Governance & Analytics</div>
+    <div style="margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;color:#3d6080;">
+      © 2026 BailiwickQuikFix · FohBoh.ai · Joint IP — Confidential
+    </div>
+  </div>
+
+</div>
+<div id="qf-nav" style="position:fixed;bottom:16px;right:16px;z-index:99999;display:flex;gap:8px;font-family:monospace;font-size:11px;">
+  <a href="index.html" style="background:#1A1A1A;color:#00FF88;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Customer</a>
+  <a href="pro.html" style="background:#1A1A1A;color:#3B82F6;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Pro App</a>
+  <a href="console.html" style="background:#1A1A1A;color:#A78BFA;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Console</a>
+  <a href="architecture.html" style="background:#1A1A1A;color:#888;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Arch</a>
+</div>
+</body>
+</html>
