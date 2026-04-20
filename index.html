@@ -3940,6 +3940,2622 @@ function Console() {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>BailiwickQuikFix Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#0A0A0A;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+    input::placeholder{color:#5A5A5A;}
+    ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2E2E2E;border-radius:2px;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>var useState=React.useState,useRef=React.useRef,useEffect=React.useEffect;</script>
+  <script>
+/* ═══════════════════════════════════════════════════════════
+   BAILIWICKQUIKFIX PRO APP
+   The contractor-facing app. Think Uber Driver.
+   Dark theme — pros use this on-site, outdoors, glare conditions.
+   Every tap target is oversized. Every state is unmistakable.
+═══════════════════════════════════════════════════════════ */
+
+const font = "'DM Sans', -apple-system, sans-serif";
+
+/* ── Design tokens — dark, high-contrast, field-ready ── */
+const P = {
+  bg: "#0A0A0A",
+  surf: "#141414",
+  card: "#1C1C1C",
+  lift: "#242424",
+  border: "#2E2E2E",
+  text: "#F5F5F5",
+  sub: "#A0A0A0",
+  muted: "#5A5A5A",
+  red: "#D32F2F",
+  redL: "#FF5252",
+  redBg: "#1A0000",
+  green: "#22C55E",
+  greenBg: "#052510",
+  amber: "#F59E0B",
+  amberBg: "#1A1200",
+  blue: "#3B82F6",
+  blueBg: "#071428",
+  white: "#FFFFFF",
+  qfx: "#10B981"
+};
+
+/* ── Mock data ── */
+const ME = {
+  id: 1,
+  name: "Maria Santos",
+  pronoun: "She/Her",
+  trade: "Plumber",
+  photo: "https://randomuser.me/api/portraits/women/44.jpg",
+  rating: 4.93,
+  jobs: 312,
+  trustScore: 98,
+  status: "online",
+  vehicle: "Blue Honda Civic · TXP 8821",
+  zip: "78704",
+  city: "Austin TX",
+  earnings: {
+    today: 185,
+    week: 1240,
+    pending: 65
+  },
+  badges: ["Background Check", "Licensed", "Top Rated", "$1M Insured"],
+  bankLast4: "4821"
+};
+const INCOMING_JOB = {
+  id: "BWK-9991G",
+  type: "plumbing",
+  fix: "Leaking kitchen faucet",
+  transcript: "My kitchen faucet has been dripping constantly for two days",
+  rate: 89,
+  total: 98.99,
+  urgency: "routine",
+  quikfix: true,
+  eta: 14,
+  distance: "2.1 miles away",
+  address: "3812 Walden Way, Austin TX 78704",
+  customerName: "Alex J.",
+  customerRating: 4.8,
+  notes: "Dispatch plumber for standard dripping faucet repair. Bring washer/cartridge kit for single and double-handle. Flat rate $89.",
+  timeLimit: 28
+};
+const ACTIVE_JOB = {
+  id: "BWK-9988F",
+  type: "plumbing",
+  fix: "Garbage disposal reset/unjam",
+  rate: 65,
+  total: 74.99,
+  address: "218 Barton Springs Rd, Austin TX 78704",
+  customerName: "Carlos M.",
+  customerPhone: null,
+  notes: "Dispatch plumber for disposal reset. Bring hex wrench. Reset button + manual unjam.",
+  stage: "enroute" // enroute → arrived → inprogress → complete
+};
+const PAST_JOBS = [{
+  id: "BWK-9945A",
+  fix: "Faucet repair",
+  date: "Today 9:14 AM",
+  earned: 75.65,
+  rating: 5,
+  tip: 5
+}, {
+  id: "BWK-9920C",
+  fix: "Toilet repair",
+  date: "Yesterday",
+  earned: 67.15,
+  rating: 5,
+  tip: 4.5
+}, {
+  id: "BWK-9901B",
+  fix: "Disposal reset",
+  date: "Apr 17",
+  earned: 55.25,
+  rating: 4,
+  tip: 4
+}, {
+  id: "BWK-9880D",
+  fix: "Sink unclog",
+  date: "Apr 16",
+  earned: 80.75,
+  rating: 5,
+  tip: 5
+}];
+
+/* ── Atoms ── */
+function BigBtn({
+  label,
+  sub,
+  onClick,
+  color = P.green,
+  disabled = false,
+  pulse = false
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: disabled ? null : onClick,
+    style: {
+      width: "100%",
+      background: disabled ? P.lift : color,
+      border: "none",
+      borderRadius: 18,
+      padding: "22px 20px",
+      cursor: disabled ? "not-allowed" : "pointer",
+      fontFamily: font,
+      transition: "all 0.2s",
+      opacity: disabled ? 0.4 : 1,
+      boxShadow: disabled ? "none" : `0 8px 32px ${color}55`,
+      animation: pulse && !disabled ? "btnPulse 2s ease-in-out infinite" : "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: disabled ? P.muted : P.bg,
+      letterSpacing: -0.3
+    }
+  }, label), sub && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 500,
+      color: disabled ? P.muted : P.bg + "CC",
+      marginTop: 4
+    }
+  }, sub));
+}
+function GhostBtn({
+  label,
+  onClick,
+  color = P.sub,
+  small = false
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: onClick,
+    style: {
+      background: "transparent",
+      border: `1.5px solid ${P.border}`,
+      borderRadius: 12,
+      padding: small ? "10px 18px" : "14px 20px",
+      fontFamily: font,
+      fontSize: small ? 13 : 15,
+      fontWeight: 600,
+      color,
+      cursor: "pointer",
+      transition: "all 0.15s"
+    },
+    onMouseEnter: e => {
+      e.currentTarget.style.borderColor = color;
+    },
+    onMouseLeave: e => {
+      e.currentTarget.style.borderColor = P.border;
+    }
+  }, label);
+}
+function StatusBadge({
+  status
+}) {
+  const M = {
+    online: [P.green, "● Online"],
+    busy: [P.amber, "● On Job"],
+    offline: [P.muted, "○ Offline"],
+    enroute: [P.qfx, "→ En Route"],
+    arrived: [P.blue, "◎ Arrived"],
+    inprogress: [P.amber, "⚙ In Progress"],
+    complete: [P.green, "✓ Complete"]
+  };
+  const [color, label] = M[status] || [P.muted, status];
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color,
+      background: color + "22",
+      borderRadius: 100,
+      padding: "4px 12px",
+      letterSpacing: 0.3
+    }
+  }, label);
+}
+function ProPhoto({
+  size = 48
+}) {
+  const [err, setErr] = useState(false);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: size,
+      height: size,
+      borderRadius: "50%",
+      overflow: "hidden",
+      border: `2px solid ${P.green}`,
+      flexShrink: 0
+    }
+  }, !err ? /*#__PURE__*/React.createElement("img", {
+    src: ME.photo,
+    onError: () => setErr(true),
+    style: {
+      width: "100%",
+      height: "100%",
+      objectFit: "cover"
+    },
+    alt: ""
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      height: "100%",
+      background: P.lift,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: size * 0.36,
+      fontWeight: 700,
+      color: P.sub
+    }
+  }, ME.name.split(" ").map(n => n[0]).join("")));
+}
+function Card({
+  children,
+  style = {},
+  accent
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.card,
+      border: `1px solid ${accent ? accent + "44" : P.border}`,
+      borderRadius: 18,
+      overflow: "hidden",
+      marginBottom: 12,
+      boxShadow: accent ? `0 4px 24px ${accent}22` : "none",
+      ...style
+    }
+  }, children);
+}
+function Row({
+  label,
+  value,
+  accent
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      padding: "12px 0",
+      borderBottom: `1px solid ${P.border}`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: P.sub
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      fontWeight: 600,
+      color: accent || P.text,
+      textAlign: "right",
+      maxWidth: "58%",
+      lineHeight: 1.5
+    }
+  }, value));
+}
+
+/* ── Countdown ring ── */
+function CountdownRing({
+  total,
+  remaining
+}) {
+  const pct = remaining / total;
+  const r = 54,
+    circ = 2 * Math.PI * r;
+  const color = pct > 0.5 ? P.amber : pct > 0.25 ? P.redL : P.red;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      width: 130,
+      height: 130,
+      margin: "0 auto"
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "130",
+    height: "130",
+    style: {
+      transform: "rotate(-90deg)"
+    }
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "65",
+    cy: "65",
+    r: r,
+    fill: "none",
+    stroke: P.border,
+    strokeWidth: "8"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "65",
+    cy: "65",
+    r: r,
+    fill: "none",
+    stroke: color,
+    strokeWidth: "8",
+    strokeDasharray: circ,
+    strokeDashoffset: circ * (1 - pct),
+    strokeLinecap: "round",
+    style: {
+      transition: "stroke-dashoffset 1s linear,stroke 2s"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 40,
+      fontWeight: 900,
+      color,
+      lineHeight: 1,
+      letterSpacing: -2
+    }
+  }, remaining), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1
+    }
+  }, "SEC")));
+}
+
+/* ── Mini map ── */
+function MiniMap({
+  destination,
+  stage
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      borderRadius: 14,
+      overflow: "hidden",
+      height: 160,
+      background: "#111",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 400 160",
+    width: "100%",
+    height: "160",
+    style: {
+      display: "block",
+      background: "#0f1419"
+    }
+  }, [40, 80, 120, 160, 200, 240, 280, 320, 360].map(x => /*#__PURE__*/React.createElement("line", {
+    key: `v${x}`,
+    x1: x,
+    y1: "0",
+    x2: x,
+    y2: "160",
+    stroke: "#1a2433",
+    strokeWidth: "1"
+  })), [32, 64, 96, 128].map(y => /*#__PURE__*/React.createElement("line", {
+    key: `h${y}`,
+    x1: "0",
+    y1: y,
+    x2: "400",
+    y2: y,
+    stroke: "#1a2433",
+    strokeWidth: "1"
+  })), /*#__PURE__*/React.createElement("line", {
+    x1: "0",
+    y1: "80",
+    x2: "400",
+    y2: "80",
+    stroke: "#232f3e",
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "200",
+    y1: "0",
+    x2: "200",
+    y2: "160",
+    stroke: "#232f3e",
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "0",
+    y1: "30",
+    x2: "400",
+    y2: "30",
+    stroke: "#1a2433",
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "80",
+    y1: "0",
+    x2: "80",
+    y2: "160",
+    stroke: "#1a2433",
+    strokeWidth: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "60",
+    y1: "130",
+    x2: "320",
+    y2: "50",
+    stroke: P.qfx,
+    strokeWidth: "2.5",
+    strokeDasharray: "8,4",
+    strokeLinecap: "round",
+    opacity: "0.8"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "320",
+    cy: "50",
+    r: "12",
+    fill: P.red,
+    opacity: "0.2"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "320",
+    cy: "50",
+    r: "7",
+    fill: P.red
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "320",
+    y: "37",
+    textAnchor: "middle",
+    fontSize: "8",
+    fill: P.red,
+    fontWeight: "700",
+    fontFamily: font
+  }, "DEST"), stage === "enroute" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("circle", {
+    cx: "60",
+    cy: "130",
+    r: "14",
+    fill: P.qfx,
+    opacity: "0.15"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "60",
+    cy: "130",
+    r: "8",
+    fill: P.qfx,
+    opacity: "0.3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "60",
+    cy: "130",
+    r: "5",
+    fill: P.qfx
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "60",
+    y: "118",
+    textAnchor: "middle",
+    fontSize: "7",
+    fill: P.qfx,
+    fontWeight: "700",
+    fontFamily: font
+  }, "YOU"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      bottom: 10,
+      left: 10,
+      right: 10,
+      background: "rgba(0,0,0,0.85)",
+      borderRadius: 10,
+      padding: "8px 12px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: P.text
+    }
+  }, destination), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: P.sub,
+      marginTop: 1
+    }
+  }, "Navigate with Apple Maps")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 32,
+      height: 32,
+      borderRadius: "50%",
+      background: P.blue,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M3 11l19-9-9 19-2-8-8-2z",
+    fill: "white"
+  })))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN: ONBOARDING (new pro sign-up flow)
+═══════════════════════════════════════════════════════════ */
+function OnboardingScreen({
+  onDone
+}) {
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    trade: "plumbing",
+    zip: "",
+    years: "",
+    vehicle: "",
+    bankName: "",
+    bankAcct: ""
+  });
+  const set = (k, v) => setForm(f => ({
+    ...f,
+    [k]: v
+  }));
+  const STEPS = [{
+    title: "Welcome to\nBailiwickQuikFix",
+    sub: "Earn $65–125/hr. Jobs come to you.",
+    type: "intro"
+  }, {
+    title: "Your info",
+    sub: "Let's get you set up",
+    type: "form",
+    fields: [["Full name", "Jane Smith", "name", "text"], ["Email", "jane@email.com", "email", "email"], ["Mobile phone", "(512) 555-0100", "phone", "tel"]]
+  }, {
+    title: "Your trade",
+    sub: "What services do you provide?",
+    type: "trade"
+  }, {
+    title: "Service area",
+    sub: "Where do you work?",
+    type: "area"
+  }, {
+    title: "Identity check",
+    sub: "Government ID + selfie via Persona",
+    type: "verify",
+    partner: "Persona"
+  }, {
+    title: "Background check",
+    sub: "Criminal + sex offender check via Checkr",
+    type: "verify",
+    partner: "Checkr"
+  }, {
+    title: "License & insurance",
+    sub: "Upload your trade license and $1M COI",
+    type: "docs"
+  }, {
+    title: "Your vehicle",
+    sub: "Customers see this for tracking",
+    type: "form",
+    fields: [["Vehicle (year, make, model)", "2019 Honda Civic", "vehicle", "text"], ["License plate", "TXP 8821", "plate", "text"]]
+  }, {
+    title: "Payout setup",
+    sub: "Direct deposit via Stripe — paid within 24 hrs",
+    type: "bank"
+  }, {
+    title: "You're all set!",
+    sub: "Welcome to the network",
+    type: "done"
+  }];
+  const TRADES = ["Plumber", "Electrician", "Handyman", "Drywall Pro", "HVAC Tech", "Appliance Tech", "Locksmith", "Painter"];
+  const s = STEPS[step];
+  const isLast = step === STEPS.length - 1;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: P.bg,
+      fontFamily: font,
+      color: P.text,
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, step > 0 && step < STEPS.length - 1 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 3,
+      background: P.border
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      background: P.green,
+      width: `${step / (STEPS.length - 2) * 100}%`,
+      transition: "width 0.4s ease"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      maxWidth: 480,
+      margin: "0 auto",
+      width: "100%",
+      padding: "32px 20px 120px",
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, step > 0 && step < STEPS.length - 1 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setStep(s => s - 1),
+    style: {
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      color: P.sub,
+      fontFamily: font,
+      fontSize: 13,
+      fontWeight: 600,
+      marginBottom: 24,
+      padding: 0
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 16 16",
+    fill: "none"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M10 3L5 8L10 13",
+    stroke: "currentColor",
+    strokeWidth: "1.8",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  })), "Back"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: s.type === "intro" ? 48 : 32
+    }
+  }, s.type === "intro" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 52,
+      marginBottom: 12
+    }
+  }, "\u26A1"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      fontWeight: 800,
+      color: P.text,
+      letterSpacing: -0.3
+    }
+  }, "Bailiwick", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: P.red
+    }
+  }, "QuikFix")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: P.muted,
+      fontWeight: 600,
+      letterSpacing: 1.5,
+      marginTop: 4
+    }
+  }, "PRO APP")), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: s.type === "intro" ? 32 : 28,
+      fontWeight: 900,
+      color: P.text,
+      letterSpacing: -0.8,
+      margin: "0 0 10px",
+      lineHeight: 1.1,
+      whiteSpace: "pre-line",
+      textAlign: s.type === "intro" ? "center" : "left"
+    }
+  }, s.title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: P.sub,
+      margin: 0,
+      textAlign: s.type === "intro" ? "center" : "left"
+    }
+  }, s.sub)), s.type === "form" && s.fields && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, s.fields.map(([label, ph, key, type]) => /*#__PURE__*/React.createElement("div", {
+    key: key,
+    style: {
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: P.sub,
+      display: "block",
+      marginBottom: 6
+    }
+  }, label), /*#__PURE__*/React.createElement("input", {
+    value: form[key] || "",
+    onChange: e => set(key, e.target.value),
+    placeholder: ph,
+    type: type,
+    style: {
+      width: "100%",
+      background: P.lift,
+      border: `1px solid ${P.border}`,
+      borderRadius: 12,
+      padding: "15px 16px",
+      fontSize: 16,
+      color: P.text,
+      outline: "none",
+      boxSizing: "border-box",
+      fontFamily: font,
+      transition: "border-color 0.15s"
+    },
+    onFocus: e => e.target.style.borderColor = P.green,
+    onBlur: e => e.target.style.borderColor = P.border
+  })))), s.type === "trade" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10,
+      flex: 1
+    }
+  }, TRADES.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t,
+    onClick: () => setForm(f => ({
+      ...f,
+      trade: t.toLowerCase()
+    })),
+    style: {
+      background: form.trade === t.toLowerCase() ? P.green + "22" : P.lift,
+      border: `1.5px solid ${form.trade === t.toLowerCase() ? P.green : P.border}`,
+      borderRadius: 14,
+      padding: "18px 14px",
+      cursor: "pointer",
+      fontFamily: font,
+      fontSize: 14,
+      fontWeight: 700,
+      color: form.trade === t.toLowerCase() ? P.green : P.text,
+      transition: "all 0.15s",
+      textAlign: "center"
+    }
+  }, t))), s.type === "area" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: P.sub,
+      display: "block",
+      marginBottom: 6
+    }
+  }, "Home ZIP code"), /*#__PURE__*/React.createElement("input", {
+    value: form.zip,
+    onChange: e => set("zip", e.target.value.slice(0, 5)),
+    placeholder: "78704",
+    maxLength: 5,
+    style: {
+      width: "100%",
+      background: P.lift,
+      border: `1px solid ${P.border}`,
+      borderRadius: 12,
+      padding: "15px 16px",
+      fontSize: 20,
+      color: P.text,
+      outline: "none",
+      boxSizing: "border-box",
+      fontFamily: font,
+      letterSpacing: 4,
+      textAlign: "center",
+      fontWeight: 700
+    },
+    onFocus: e => e.target.style.borderColor = P.green,
+    onBlur: e => e.target.style.borderColor = P.border
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: P.muted,
+      marginTop: 12,
+      lineHeight: 1.7
+    }
+  }, "We dispatch jobs within a 30-minute drive of this location. You can adjust your service area after setup."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginTop: 16,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 200 120",
+    width: "100%",
+    height: "120",
+    style: {
+      display: "block"
+    }
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "100",
+    cy: "60",
+    r: "50",
+    fill: P.green,
+    opacity: "0.06",
+    stroke: P.green,
+    strokeWidth: "1",
+    strokeDasharray: "4,3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "100",
+    cy: "60",
+    r: "32",
+    fill: P.green,
+    opacity: "0.08",
+    stroke: P.green,
+    strokeWidth: "1",
+    strokeDasharray: "4,3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "100",
+    cy: "60",
+    r: "8",
+    fill: P.green,
+    opacity: "0.4"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "100",
+    cy: "60",
+    r: "4",
+    fill: P.green
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "100",
+    y: "125",
+    textAnchor: "middle",
+    fontSize: "9",
+    fill: P.muted,
+    fontFamily: font
+  }, "30 min drive radius")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: P.muted,
+      margin: "8px 0 0"
+    }
+  }, "Jobs dispatched within your drive zone"))), s.type === "verify" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 18,
+      padding: 24,
+      textAlign: "center",
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 64,
+      height: 64,
+      borderRadius: 18,
+      background: P.lift,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      margin: "0 auto 16px"
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "32",
+    height: "32",
+    viewBox: "0 0 24 24",
+    fill: "none"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+    stroke: P.green,
+    strokeWidth: "1.8",
+    strokeLinejoin: "round"
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 800,
+      color: P.text,
+      marginBottom: 8
+    }
+  }, "Powered by ", s.partner), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: P.sub,
+      lineHeight: 1.7
+    }
+  }, s.partner === "Persona" ? "Take a photo of your government-issued ID, then a quick selfie. Takes about 2 minutes." : "We run a national criminal background check. Results typically in 1–2 business days.")), /*#__PURE__*/React.createElement(BigBtn, {
+    label: `Start ${s.partner} Check`,
+    color: P.green,
+    onClick: () => setStep(s => s + 1)
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: P.muted,
+      textAlign: "center",
+      marginTop: 10
+    }
+  }, "Secure \xB7 Encrypted \xB7 Same tech used by Uber and Airbnb")), s.type === "docs" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, [{
+    label: "Trade License",
+    sub: "State-issued license for your trade",
+    icon: "📋"
+  }, {
+    label: "Certificate of Insurance",
+    sub: "$1M general liability minimum",
+    icon: "🛡️"
+  }].map((doc, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 10,
+      display: "flex",
+      gap: 14,
+      alignItems: "center",
+      cursor: "pointer"
+    },
+    onClick: () => {}
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      background: P.lift,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 22,
+      flexShrink: 0
+    }
+  }, doc.icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: P.text,
+      marginBottom: 2
+    }
+  }, doc.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: P.sub
+    }
+  }, doc.sub)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.lift,
+      borderRadius: 8,
+      padding: "6px 12px",
+      fontSize: 12,
+      fontWeight: 600,
+      color: P.muted
+    }
+  }, "Upload"))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: P.muted,
+      marginTop: 12,
+      lineHeight: 1.7
+    }
+  }, "Your documents are reviewed within 1 business day. You'll be notified when approved.")), s.type === "bank" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1.5,
+      marginBottom: 12
+    }
+  }, "PAYOUT SCHEDULE"), [["Standard payout", "Next business day · free"], ["Instant payout", "Same day · 1.5% fee"]].map(([k, v]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "9px 0",
+      borderBottom: `1px solid ${P.border}`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: P.sub
+    }
+  }, k), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      fontWeight: 600,
+      color: P.text
+    }
+  }, v)))), [["Bank name", "Chase, Wells Fargo…", "bankName", "text"], ["Account number", "••••••4821", "bankAcct", "text"]].map(([label, ph, key, type]) => /*#__PURE__*/React.createElement("div", {
+    key: key,
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: P.sub,
+      display: "block",
+      marginBottom: 6
+    }
+  }, label), /*#__PURE__*/React.createElement("input", {
+    value: form[key] || "",
+    onChange: e => set(key, e.target.value),
+    placeholder: ph,
+    type: type,
+    style: {
+      width: "100%",
+      background: P.lift,
+      border: `1px solid ${P.border}`,
+      borderRadius: 12,
+      padding: "15px 16px",
+      fontSize: 15,
+      color: P.text,
+      outline: "none",
+      boxSizing: "border-box",
+      fontFamily: font
+    },
+    onFocus: e => e.target.style.borderColor = P.green,
+    onBlur: e => e.target.style.borderColor = P.border
+  }))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: P.muted,
+      lineHeight: 1.7
+    }
+  }, "Bank details secured via Stripe Connect. BailiwickQuikFix never stores your account number.")), s.type === "done" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 80,
+      height: 80,
+      borderRadius: "50%",
+      background: P.green + "22",
+      border: `2px solid ${P.green}`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      margin: "0 auto 24px",
+      fontSize: 40
+    }
+  }, "\u2713"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: P.sub,
+      lineHeight: 1.8,
+      marginBottom: 28
+    }
+  }, "Your application is under review. We'll notify you within 1 business day when you're cleared to take jobs."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 14,
+      padding: 16,
+      textAlign: "left"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1.5,
+      marginBottom: 10
+    }
+  }, "WHAT HAPPENS NEXT"), ["Identity check · 5 min", "Background check · 1–2 days", "License verification · 1 day", "You get notified via SMS", "First jobs start coming in"].map((t, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 10,
+      padding: "8px 0",
+      borderBottom: i < 4 ? `1px solid ${P.border}` : "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 20,
+      height: 20,
+      borderRadius: "50%",
+      background: P.lift,
+      border: `1px solid ${P.border}`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 10,
+      fontWeight: 700,
+      color: P.muted,
+      flexShrink: 0
+    }
+  }, i + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: P.sub
+    }
+  }, t)))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: P.bg + "F5",
+      backdropFilter: "blur(16px)",
+      padding: "16px 20px 32px",
+      borderTop: `1px solid ${P.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 480,
+      margin: "0 auto"
+    }
+  }, !isLast ? /*#__PURE__*/React.createElement(BigBtn, {
+    label: step === 0 ? "Get Started →" : "Continue →",
+    color: P.green,
+    onClick: () => setStep(s => s + 1)
+  }) : /*#__PURE__*/React.createElement(BigBtn, {
+    label: "Go to Dashboard \u2192",
+    color: P.green,
+    onClick: onDone
+  }), step === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11,
+      color: P.muted,
+      textAlign: "center",
+      marginTop: 10
+    }
+  }, "Background check \xB7 License verification \xB7 $1M COI required"))), /*#__PURE__*/React.createElement("style", null, `
+        @keyframes btnPulse{0%,100%{box-shadow:0 8px 32px #22C55E55}50%{box-shadow:0 8px 48px #22C55E99}}
+      `));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN: INCOMING JOB ALERT
+═══════════════════════════════════════════════════════════ */
+function IncomingJobScreen({
+  onAccept,
+  onDecline
+}) {
+  const [remaining, setRemaining] = useState(INCOMING_JOB.timeLimit);
+  useEffect(() => {
+    if (remaining <= 0) {
+      onDecline();
+      return;
+    }
+    const t = setTimeout(() => setRemaining(r => r - 1), 1000);
+    return () => clearTimeout(t);
+  }, [remaining]);
+  const urgencyColor = INCOMING_JOB.urgency === "emergency" ? P.red : INCOMING_JOB.urgency === "urgent" ? P.amber : P.green;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: P.bg,
+      fontFamily: font,
+      color: P.text,
+      display: "flex",
+      flexDirection: "column",
+      animation: "slideUp 0.35s ease"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: INCOMING_JOB.quikfix ? P.green + "18" : P.lift,
+      borderBottom: `1px solid ${INCOMING_JOB.quikfix ? P.green + "44" : P.border}`,
+      padding: "16px 20px",
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: 2,
+      color: INCOMING_JOB.quikfix ? P.green : P.amber
+    }
+  }, INCOMING_JOB.quikfix ? "⚡ QUIKFIX JOB" : "STANDARD JOB"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 600,
+      color: P.sub,
+      marginTop: 2
+    }
+  }, "New job request \u2014 respond in time")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      maxWidth: 480,
+      margin: "0 auto",
+      width: "100%",
+      padding: "24px 20px 160px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement(CountdownRing, {
+    total: INCOMING_JOB.timeLimit,
+    remaining: remaining
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: P.sub,
+      marginTop: 10
+    }
+  }, "Auto-declines if no response")), /*#__PURE__*/React.createElement(Card, {
+    accent: urgencyColor
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "18px 20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1.5,
+      marginBottom: 4
+    }
+  }, INCOMING_JOB.id), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: P.text,
+      letterSpacing: -0.3,
+      marginBottom: 4
+    }
+  }, INCOMING_JOB.fix), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: P.sub,
+      fontStyle: "italic"
+    }
+  }, "\"", INCOMING_JOB.transcript, "\"")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "right",
+      flexShrink: 0,
+      marginLeft: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 36,
+      fontWeight: 900,
+      color: P.green,
+      letterSpacing: -1,
+      lineHeight: 1
+    }
+  }, "$", INCOMING_JOB.rate), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: P.muted,
+      marginTop: 2
+    }
+  }, "YOUR TAKE"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 1,
+      background: P.border,
+      margin: "14px 0"
+    }
+  }), /*#__PURE__*/React.createElement(Row, {
+    label: "\uD83D\uDCCD Distance",
+    value: INCOMING_JOB.distance
+  }), /*#__PURE__*/React.createElement(Row, {
+    label: "\uD83C\uDFE0 Address",
+    value: INCOMING_JOB.address
+  }), /*#__PURE__*/React.createElement(Row, {
+    label: "\u23F1 Est. job duration",
+    value: "~30 min"
+  }), /*#__PURE__*/React.createElement(Row, {
+    label: "\uD83D\uDCB3 Customer pays",
+    value: `$${INCOMING_JOB.total}`
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "12px 0"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1.5,
+      marginBottom: 6
+    }
+  }, "PREP NOTE"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: P.sub,
+      lineHeight: 1.65
+    }
+  }, INCOMING_JOB.notes)))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "14px 20px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: P.text
+    }
+  }, INCOMING_JOB.customerName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 4,
+      marginTop: 3
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: P.amber
+    }
+  }, "\u2605 ", INCOMING_JOB.customerRating), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: P.muted
+    }
+  }, "customer rating"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: P.muted,
+      textAlign: "right"
+    }
+  }, "No phone number shared", /*#__PURE__*/React.createElement("br", null), "In-app messaging only")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: P.bg + "F8",
+      backdropFilter: "blur(20px)",
+      padding: "16px 20px 36px",
+      borderTop: `1px solid ${P.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 480,
+      margin: "0 auto",
+      display: "grid",
+      gridTemplateColumns: "1fr 2fr",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(GhostBtn, {
+    label: "Decline",
+    onClick: onDecline,
+    color: P.muted
+  }), /*#__PURE__*/React.createElement(BigBtn, {
+    label: `Accept · $${INCOMING_JOB.rate}`,
+    sub: `${remaining}s remaining`,
+    color: P.green,
+    onClick: onAccept,
+    pulse: remaining <= 10
+  }))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN: ACTIVE JOB
+═══════════════════════════════════════════════════════════ */
+function ActiveJobScreen({
+  onComplete
+}) {
+  const [stage, setStage] = useState("enroute");
+  const [msgs, setMsgs] = useState([{
+    from: "customer",
+    text: "Hi! Just to confirm — it's the kitchen sink faucet.",
+    ts: "2:34 PM"
+  }]);
+  const [input, setInput] = useState("");
+  const [tab, setTab] = useState("job");
+  const [photos, setPhotos] = useState({
+    before: false,
+    after: false
+  });
+  const endRef = useRef(null);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({
+      behavior: "smooth"
+    });
+  }, [msgs, tab]);
+  const STAGES = [{
+    id: "enroute",
+    label: "En Route",
+    sub: "Head to customer location"
+  }, {
+    id: "arrived",
+    label: "Arrived",
+    sub: "Let the customer know you're here"
+  }, {
+    id: "inprogress",
+    label: "In Progress",
+    sub: "Job underway"
+  }, {
+    id: "complete",
+    label: "Job Complete",
+    sub: "Upload after photo to finish"
+  }];
+  const stageIdx = STAGES.findIndex(s => s.id === stage);
+  const nextStage = STAGES[stageIdx + 1];
+  const stageColor = stage === "complete" ? P.green : stage === "inprogress" ? P.amber : P.qfx;
+  function advanceStage() {
+    const next = STAGES[stageIdx + 1];
+    if (next) setStage(next.id);
+    if (next?.id === "complete") setPhotos(p => ({
+      ...p,
+      after: true
+    }));
+  }
+  function sendMsg() {
+    if (!input.trim()) return;
+    setMsgs(m => [...m, {
+      from: "me",
+      text: input.trim(),
+      ts: "Now"
+    }]);
+    setInput("");
+    setTimeout(() => setMsgs(m => [...m, {
+      from: "customer",
+      text: "Great, thanks!",
+      ts: "Now"
+    }]), 800);
+  }
+  const canComplete = stage === "complete" && photos.after;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: P.bg,
+      fontFamily: font,
+      color: P.text,
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: stageColor + "18",
+      borderBottom: `1px solid ${stageColor}33`,
+      padding: "12px 20px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: stageColor,
+      letterSpacing: 1.5
+    }
+  }, ACTIVE_JOB.id, " \xB7 ", ACTIVE_JOB.fix.toUpperCase()), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: P.text,
+      marginTop: 2
+    }
+  }, STAGES[stageIdx].label)), /*#__PURE__*/React.createElement(StatusBadge, {
+    status: stage
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      background: P.surf,
+      borderBottom: `1px solid ${P.border}`
+    }
+  }, [["job", "Job"], ["map", "Map"], ["chat", "Chat"]].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => setTab(id),
+    style: {
+      flex: 1,
+      padding: "12px 0",
+      background: "transparent",
+      border: "none",
+      fontFamily: font,
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: "pointer",
+      color: tab === id ? stageColor : P.muted,
+      borderBottom: `2px solid ${tab === id ? stageColor : "transparent"}`,
+      transition: "all 0.15s"
+    }
+  }, label, id === "chat" && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: 5,
+      background: P.red,
+      color: P.white,
+      borderRadius: "50%",
+      fontSize: 9,
+      fontWeight: 800,
+      padding: "1px 5px",
+      verticalAlign: "top"
+    }
+  }, msgs.filter(m => m.from === "customer").length)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      maxWidth: 480,
+      margin: "0 auto",
+      width: "100%",
+      padding: "16px 20px 140px",
+      overflowY: "auto"
+    }
+  }, tab === "job" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      animation: "up 0.2s ease"
+    }
+  }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "16px 20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1.5,
+      marginBottom: 14
+    }
+  }, "JOB PROGRESS"), STAGES.map((s, i) => {
+    const done = i < stageIdx;
+    const active = i === stageIdx;
+    return /*#__PURE__*/React.createElement("div", {
+      key: s.id,
+      style: {
+        display: "flex",
+        gap: 14,
+        paddingBottom: i < STAGES.length - 1 ? 14 : 0,
+        marginBottom: i < STAGES.length - 1 ? 14 : 0,
+        borderBottom: i < STAGES.length - 1 ? `1px solid ${P.border}` : "none",
+        opacity: done || active ? 1 : 0.3
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 32,
+        height: 32,
+        borderRadius: "50%",
+        flexShrink: 0,
+        background: done ? P.green : active ? stageColor : P.lift,
+        border: `1.5px solid ${done ? P.green : active ? stageColor : P.border}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 14,
+        fontWeight: 700,
+        color: done || active ? P.bg : P.muted
+      }
+    }, done ? "✓" : i + 1), /*#__PURE__*/React.createElement("div", {
+      style: {
+        paddingTop: 4
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 700,
+        color: active ? P.text : done ? P.sub : P.muted
+      }
+    }, s.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: P.muted,
+        marginTop: 2
+      }
+    }, s.sub)));
+  }))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "16px 20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1.5,
+      marginBottom: 10
+    }
+  }, "DISPATCH NOTES"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: P.sub,
+      lineHeight: 1.7,
+      borderLeft: `3px solid ${P.amber}`,
+      paddingLeft: 12
+    }
+  }, ACTIVE_JOB.notes))), (stage === "enroute" || stage === "arrived" || stage === "inprogress" || stage === "complete") && /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "16px 20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: P.muted,
+      letterSpacing: 1.5,
+      marginBottom: 12
+    }
+  }, "REQUIRED PHOTOS"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10
+    }
+  }, [["before", "Before", "Take on arrival"], ["after", "After", "Take on completion"]].map(([k, label, sub]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    onClick: () => stage !== "enroute" && setPhotos(p => ({
+      ...p,
+      [k]: true
+    })),
+    style: {
+      background: photos[k] ? P.green + "18" : P.lift,
+      border: `1.5px solid ${photos[k] ? P.green : P.border}`,
+      borderRadius: 12,
+      padding: "14px",
+      textAlign: "center",
+      cursor: "pointer",
+      transition: "all 0.15s"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, photos[k] ? "✓" : "📷"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: photos[k] ? P.green : P.text
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: P.muted,
+      marginTop: 2
+    }
+  }, sub)))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "16px 20px"
+    }
+  }, /*#__PURE__*/React.createElement(Row, {
+    label: "Customer",
+    value: ACTIVE_JOB.customerName
+  }), /*#__PURE__*/React.createElement(Row, {
+    label: "Address",
+    value: ACTIVE_JOB.address
+  }), /*#__PURE__*/React.createElement(Row, {
+    label: "Your rate",
+    value: `$${ACTIVE_JOB.rate}`
+  }), /*#__PURE__*/React.createElement(Row, {
+    label: "Customer total",
+    value: `$${ACTIVE_JOB.total}`
+  })))), tab === "map" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      animation: "up 0.2s ease"
+    }
+  }, /*#__PURE__*/React.createElement(MiniMap, {
+    destination: ACTIVE_JOB.address,
+    stage: stage
+  }), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "16px 20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 800,
+      color: P.text,
+      marginBottom: 4
+    }
+  }, ACTIVE_JOB.address), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: P.sub
+    }
+  }, stage === "enroute" ? "Tap to open in Apple Maps or Google Maps" : "You are on-site"), stage === "enroute" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: {
+      flex: 1,
+      background: P.lift,
+      border: `1px solid ${P.border}`,
+      borderRadius: 10,
+      padding: "11px",
+      fontFamily: font,
+      fontSize: 13,
+      fontWeight: 600,
+      color: P.text,
+      cursor: "pointer"
+    }
+  }, "Apple Maps"), /*#__PURE__*/React.createElement("button", {
+    style: {
+      flex: 1,
+      background: P.lift,
+      border: `1px solid ${P.border}`,
+      borderRadius: 10,
+      padding: "11px",
+      fontFamily: font,
+      fontSize: 13,
+      fontWeight: 600,
+      color: P.text,
+      cursor: "pointer"
+    }
+  }, "Google Maps"))))), tab === "chat" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      animation: "up 0.2s ease"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 14,
+      padding: "10px 14px",
+      marginBottom: 12,
+      textAlign: "center",
+      fontSize: 11,
+      color: P.muted
+    }
+  }, "Encrypted \xB7 in-app only \xB7 no phone numbers shared"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      minHeight: 240
+    }
+  }, msgs.map((m, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: m.from === "me" ? "flex-end" : "flex-start"
+    }
+  }, m.from === "customer" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: P.muted,
+      marginBottom: 3
+    }
+  }, ACTIVE_JOB.customerName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: "78%",
+      padding: "10px 14px",
+      borderRadius: 14,
+      fontSize: 14,
+      lineHeight: 1.55,
+      background: m.from === "me" ? P.green : P.card,
+      color: m.from === "me" ? P.bg : P.text,
+      borderBottomRightRadius: m.from === "me" ? 3 : 14,
+      borderBottomLeftRadius: m.from === "me" ? 14 : 3
+    }
+  }, m.text), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: P.muted,
+      marginTop: 3
+    }
+  }, m.ts))), /*#__PURE__*/React.createElement("div", {
+    ref: endRef
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: P.bg + "F8",
+      backdropFilter: "blur(20px)",
+      padding: "16px 20px 36px",
+      borderTop: `1px solid ${P.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 480,
+      margin: "0 auto"
+    }
+  }, tab === "chat" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: input,
+    onChange: e => setInput(e.target.value),
+    onKeyDown: e => e.key === "Enter" && sendMsg(),
+    placeholder: "Message customer\u2026",
+    style: {
+      flex: 1,
+      background: P.lift,
+      border: `1px solid ${P.border}`,
+      borderRadius: 100,
+      padding: "13px 18px",
+      fontSize: 14,
+      color: P.text,
+      outline: "none",
+      fontFamily: font
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: sendMsg,
+    style: {
+      width: 48,
+      height: 48,
+      borderRadius: "50%",
+      flexShrink: 0,
+      background: input.trim() ? P.green : P.lift,
+      border: "none",
+      color: input.trim() ? P.bg : P.muted,
+      fontSize: 20,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, "\u2191")) : stage === "complete" ? /*#__PURE__*/React.createElement(BigBtn, {
+    label: "Submit & Complete Job \u2713",
+    sub: canComplete ? "Payment will be captured" : "Upload after photo first",
+    color: canComplete ? P.green : P.lift,
+    disabled: !canComplete,
+    onClick: onComplete
+  }) : /*#__PURE__*/React.createElement(BigBtn, {
+    label: nextStage ? `Mark as ${nextStage.label} →` : "Done",
+    color: stageColor,
+    onClick: advanceStage
+  }))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN: DASHBOARD (home when online)
+═══════════════════════════════════════════════════════════ */
+function DashboardScreen({
+  onIncomingJob,
+  onStatusChange
+}) {
+  const [status, setStatus] = useState("online");
+  const [tab, setTab] = useState("home");
+  function toggleStatus() {
+    const next = status === "online" ? "offline" : "online";
+    setStatus(next);
+    onStatusChange(next);
+  }
+
+  // Simulate incoming job after 4s if online
+  useEffect(() => {
+    if (status !== "online") return;
+    const t = setTimeout(onIncomingJob, 4000);
+    return () => clearTimeout(t);
+  }, [status]);
+  const TAB_SCREENS = {
+    home: /*#__PURE__*/React.createElement("div", {
+      style: {
+        animation: "up 0.3s ease"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: P.card,
+        border: `1px solid ${P.border}`,
+        borderRadius: 20,
+        padding: "24px 20px",
+        marginBottom: 12,
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: 0,
+        background: "linear-gradient(135deg,transparent 60%,#22C55E08)"
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: P.muted,
+        letterSpacing: 1.5,
+        marginBottom: 8
+      }
+    }, "TODAY'S EARNINGS"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 56,
+        fontWeight: 900,
+        color: P.green,
+        letterSpacing: -2,
+        lineHeight: 1
+      }
+    }, "$", ME.earnings.today), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "center",
+        gap: 20,
+        marginTop: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        fontWeight: 800,
+        color: P.text
+      }
+    }, "$", ME.earnings.week), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: P.muted,
+        marginTop: 2
+      }
+    }, "This week")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 1,
+        background: P.border
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        fontWeight: 800,
+        color: P.amber
+      }
+    }, "$", ME.earnings.pending), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: P.muted,
+        marginTop: 2
+      }
+    }, "Pending")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 1,
+        background: P.border
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        fontWeight: 800,
+        color: P.text
+      }
+    }, PAST_JOBS.filter(j => j.date.includes("Today")).length), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: P.muted,
+        marginTop: 2
+      }
+    }, "Jobs today")))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: status === "online" ? P.green + "18" : P.lift,
+        border: `1px solid ${status === "online" ? P.green + "44" : P.border}`,
+        borderRadius: 18,
+        padding: "20px",
+        marginBottom: 12,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 16,
+        fontWeight: 800,
+        color: P.text,
+        marginBottom: 2
+      }
+    }, status === "online" ? "You're online" : "You're offline"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: P.sub
+      }
+    }, status === "online" ? "Jobs may come in at any time" : "Go online to start receiving jobs")), /*#__PURE__*/React.createElement("div", {
+      onClick: toggleStatus,
+      style: {
+        width: 56,
+        height: 30,
+        borderRadius: 100,
+        cursor: "pointer",
+        background: status === "online" ? P.green : P.border,
+        position: "relative",
+        transition: "background 0.3s",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        top: 3,
+        left: status === "online" ? 30 : 3,
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        background: P.white,
+        transition: "left 0.3s",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.3)"
+      }
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr 1fr",
+        gap: 8,
+        marginBottom: 12
+      }
+    }, [["Rating", `★ ${ME.rating}`, P.amber], ["Trust", `${ME.trustScore}/100`, P.green], ["Jobs", ME.jobs, P.blue]].map(([label, value, color]) => /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        background: P.card,
+        border: `1px solid ${P.border}`,
+        borderRadius: 14,
+        padding: "14px 12px",
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        fontWeight: 800,
+        color,
+        letterSpacing: -0.3
+      }
+    }, value), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: P.muted,
+        marginTop: 4
+      }
+    }, label)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: P.muted,
+        letterSpacing: 1.5,
+        marginBottom: 10
+      }
+    }, "RECENT JOBS"), /*#__PURE__*/React.createElement(Card, null, PAST_JOBS.map((j, i) => /*#__PURE__*/React.createElement("div", {
+      key: j.id,
+      style: {
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        padding: "13px 18px",
+        borderBottom: i < PAST_JOBS.length - 1 ? `1px solid ${P.border}` : "none"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 600,
+        color: P.text,
+        marginBottom: 2
+      }
+    }, j.fix), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: P.muted
+      }
+    }, j.date)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "right"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 800,
+        color: P.green
+      }
+    }, "$", j.earned), j.tip > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: P.amber
+      }
+    }, "+$", j.tip, " tip"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: P.amber
+      }
+    }, "★".repeat(j.rating)))))), status === "online" && /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: P.green + "14",
+        border: `1px solid ${P.green}33`,
+        borderRadius: 14,
+        padding: "12px 16px",
+        marginTop: 4,
+        textAlign: "center",
+        fontSize: 12,
+        color: P.green,
+        fontWeight: 600
+      }
+    }, "Watching for jobs near ", ME.zip, "\u2026 \xB7 30-min dispatch radius active")),
+    account: /*#__PURE__*/React.createElement("div", {
+      style: {
+        animation: "up 0.3s ease"
+      }
+    }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "20px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 14,
+        alignItems: "center",
+        marginBottom: 20,
+        paddingBottom: 20,
+        borderBottom: `1px solid ${P.border}`
+      }
+    }, /*#__PURE__*/React.createElement(ProPhoto, {
+      size: 64
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 20,
+        fontWeight: 800,
+        color: P.text,
+        marginBottom: 2
+      }
+    }, ME.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: P.sub,
+        marginBottom: 8
+      }
+    }, ME.pronoun, " \xB7 ", ME.trade), /*#__PURE__*/React.createElement(StatusBadge, {
+      status: status
+    }))), /*#__PURE__*/React.createElement(Row, {
+      label: "Vehicle",
+      value: ME.vehicle
+    }), /*#__PURE__*/React.createElement(Row, {
+      label: "Home ZIP",
+      value: ME.zip
+    }), /*#__PURE__*/React.createElement(Row, {
+      label: "Bank payout",
+      value: `••••${ME.bankLast4}`
+    }), /*#__PURE__*/React.createElement(Row, {
+      label: "Payout schedule",
+      value: "Next business day"
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: P.muted,
+        letterSpacing: 1.5,
+        margin: "4px 0 10px"
+      }
+    }, "VERIFIED BADGES"), /*#__PURE__*/React.createElement(Card, null, ME.badges.map((b, i) => /*#__PURE__*/React.createElement("div", {
+      key: b,
+      style: {
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        padding: "13px 18px",
+        borderBottom: i < ME.badges.length - 1 ? `1px solid ${P.border}` : "none"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 28,
+        height: 28,
+        borderRadius: "50%",
+        background: P.green + "22",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 14
+      }
+    }, "\u2713"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 14,
+        fontWeight: 500,
+        color: P.text
+      }
+    }, b), /*#__PURE__*/React.createElement("span", {
+      style: {
+        marginLeft: "auto",
+        fontSize: 11,
+        color: P.green,
+        fontWeight: 600
+      }
+    }, "Verified")))), /*#__PURE__*/React.createElement(Card, null, [{
+      label: "Service area settings",
+      icon: "📍"
+    }, {
+      label: "Notification preferences",
+      icon: "🔔"
+    }, {
+      label: "Tax documents (1099)",
+      icon: "📋"
+    }, {
+      label: "Support",
+      icon: "💬"
+    }, {
+      label: "Sign out",
+      icon: "→"
+    }].map(({
+      label,
+      icon
+    }, i, arr) => /*#__PURE__*/React.createElement("button", {
+      key: label,
+      style: {
+        width: "100%",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        fontFamily: font,
+        padding: "15px 18px",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : "none",
+        transition: "background 0.12s",
+        textAlign: "left"
+      },
+      onMouseEnter: e => e.currentTarget.style.background = P.lift,
+      onMouseLeave: e => e.currentTarget.style.background = "transparent"
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 18,
+        width: 24,
+        textAlign: "center"
+      }
+    }, icon), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 14,
+        fontWeight: 500,
+        color: label === "Sign out" ? P.red : P.text
+      }
+    }, label), /*#__PURE__*/React.createElement("svg", {
+      style: {
+        marginLeft: "auto"
+      },
+      width: "14",
+      height: "14",
+      viewBox: "0 0 16 16",
+      fill: "none"
+    }, /*#__PURE__*/React.createElement("path", {
+      d: "M6 3l5 5-5 5",
+      stroke: P.muted,
+      strokeWidth: "1.5",
+      strokeLinecap: "round",
+      strokeLinejoin: "round"
+    }))))))
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: P.bg,
+      fontFamily: font,
+      color: P.text,
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "sticky",
+      top: 0,
+      zIndex: 40,
+      background: P.bg + "F5",
+      backdropFilter: "blur(20px)",
+      borderBottom: `1px solid ${P.border}`,
+      height: 56,
+      display: "flex",
+      alignItems: "center",
+      padding: "0 20px",
+      justifyContent: "space-between",
+      maxWidth: 520,
+      margin: "0 auto",
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(ProPhoto, {
+    size: 32
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color: P.text,
+      letterSpacing: -0.3
+    }
+  }, ME.name.split(" ")[0]), /*#__PURE__*/React.createElement(StatusBadge, {
+    status: status
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: P.text,
+      letterSpacing: -0.3
+    }
+  }, "Bailiwick", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: P.red
+    }
+  }, "QuikFix"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 9,
+      color: P.muted,
+      fontWeight: 600,
+      display: "block",
+      textAlign: "right",
+      letterSpacing: 1
+    }
+  }, "PRO"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      maxWidth: 480,
+      margin: "0 auto",
+      width: "100%",
+      padding: "16px 20px 100px",
+      overflowY: "auto"
+    }
+  }, TAB_SCREENS[tab]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      zIndex: 30,
+      background: P.surf + "FA",
+      backdropFilter: "blur(16px)",
+      borderTop: `1px solid ${P.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 520,
+      margin: "0 auto",
+      display: "flex"
+    }
+  }, [{
+    id: "home",
+    label: "Home",
+    icon: /*#__PURE__*/React.createElement("svg", {
+      width: "20",
+      height: "20",
+      viewBox: "0 0 20 20",
+      fill: "none"
+    }, /*#__PURE__*/React.createElement("path", {
+      d: "M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z",
+      stroke: "currentColor",
+      strokeWidth: "1.4",
+      strokeLinejoin: "round"
+    }))
+  }, {
+    id: "account",
+    label: "Account",
+    icon: /*#__PURE__*/React.createElement("svg", {
+      width: "20",
+      height: "20",
+      viewBox: "0 0 20 20",
+      fill: "none"
+    }, /*#__PURE__*/React.createElement("circle", {
+      cx: "10",
+      cy: "7",
+      r: "3.5",
+      stroke: "currentColor",
+      strokeWidth: "1.4"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6",
+      stroke: "currentColor",
+      strokeWidth: "1.4",
+      strokeLinecap: "round"
+    }))
+  }].map(t => /*#__PURE__*/React.createElement("button", {
+    key: t.id,
+    onClick: () => setTab(t.id),
+    style: {
+      flex: 1,
+      padding: "10px 0 18px",
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      fontFamily: font,
+      borderTop: `2px solid ${tab === t.id ? P.green : "transparent"}`,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 3,
+      transition: "all 0.15s"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: tab === t.id ? P.green : P.muted
+    }
+  }, t.icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontWeight: 700,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+      color: tab === t.id ? P.green : P.muted
+    }
+  }, t.label))))));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN: JOB COMPLETE
+═══════════════════════════════════════════════════════════ */
+function JobCompleteScreen({
+  onDone
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: P.bg,
+      fontFamily: font,
+      color: P.text,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "40px 20px",
+      textAlign: "center",
+      animation: "up 0.4s ease"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 88,
+      height: 88,
+      borderRadius: "50%",
+      background: P.green + "22",
+      border: `2px solid ${P.green}`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 24,
+      fontSize: 44
+    }
+  }, "\u2713"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 32,
+      fontWeight: 900,
+      color: P.green,
+      letterSpacing: -1,
+      margin: "0 0 10px"
+    }
+  }, "Job Complete"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 16,
+      color: P.sub,
+      marginBottom: 6,
+      lineHeight: 1.6
+    }
+  }, "Payment of ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: P.text
+    }
+  }, "$", ACTIVE_JOB.total), " is being processed"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: P.muted,
+      marginBottom: 36
+    }
+  }, "Direct deposit arrives within 24 hours"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 18,
+      padding: "20px",
+      width: "100%",
+      maxWidth: 360,
+      marginBottom: 28
+    }
+  }, [["Job", "Garbage disposal reset"], ["Flat rate", "$65.00"], ["Platform fee (15%)", "−$9.75"], ["Booking fee cut", "$0"], ["Your earnings", "$55.25"], ["Tip", "$5.00 (from customer)"], ["Total payout", "$60.25"]].map(([label, value], i, arr) => /*#__PURE__*/React.createElement("div", {
+    key: label,
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "9px 0",
+      borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : "none"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: i === arr.length - 1 ? P.text : P.sub
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      fontWeight: i === arr.length - 1 ? 800 : 600,
+      color: i === arr.length - 1 ? P.green : P.text
+    }
+  }, value)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      maxWidth: 360
+    }
+  }, /*#__PURE__*/React.createElement(BigBtn, {
+    label: "Back to Dashboard",
+    color: P.green,
+    onClick: onDone
+  })));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ROOT
+═══════════════════════════════════════════════════════════ */
+function ProApp() {
+  const [screen, setScreen] = useState("onboarding"); // onboarding | dashboard | incoming | active | complete
+
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: P.bg,
+      minHeight: "100vh"
+    }
+  }, screen === "onboarding" && /*#__PURE__*/React.createElement(OnboardingScreen, {
+    onDone: () => setScreen("dashboard")
+  }), screen === "dashboard" && /*#__PURE__*/React.createElement(DashboardScreen, {
+    onIncomingJob: () => setScreen("incoming"),
+    onStatusChange: s => {
+      if (s === "offline") setScreen("dashboard");
+    }
+  }), screen === "incoming" && /*#__PURE__*/React.createElement(IncomingJobScreen, {
+    onAccept: () => setScreen("active"),
+    onDecline: () => setScreen("dashboard")
+  }), screen === "active" && /*#__PURE__*/React.createElement(ActiveJobScreen, {
+    onComplete: () => setScreen("complete")
+  }), screen === "complete" && /*#__PURE__*/React.createElement(JobCompleteScreen, {
+    onDone: () => setScreen("dashboard")
+  }), /*#__PURE__*/React.createElement("style", null, `
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap');
+        @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes btnPulse{0%,100%{box-shadow:0 8px 32px #22C55E55}50%{box-shadow:0 8px 56px #22C55E88}}
+        @keyframes ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.8);opacity:0.3}}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2E2E2E;border-radius:2px;}
+        input::placeholder{color:#5A5A5A;}
+      `));
+}
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ProApp));
+  </script>
+<div id="qf-nav" style="position:fixed;bottom:16px;right:16px;z-index:99999;display:flex;gap:8px;font-family:monospace;font-size:11px;">
+  <a href="/" style="background:#1A1A1A;color:#00FF88;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Customer</a>
+  <a href="/pro.html" style="background:#1A1A1A;color:#3B82F6;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Pro App</a>
+  <a href="/console.html" style="background:#1A1A1A;color:#A78BFA;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Console</a>
+  <a href="/architecture.html" style="background:#1A1A1A;color:#888;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Arch</a>
+</div>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>BailiwickQuikFix</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet"/>
@@ -11325,2622 +13941,6 @@ function App() {
 }
 
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-  </script>
-<div id="qf-nav" style="position:fixed;bottom:16px;right:16px;z-index:99999;display:flex;gap:8px;font-family:monospace;font-size:11px;">
-  <a href="/" style="background:#1A1A1A;color:#00FF88;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Customer</a>
-  <a href="/pro.html" style="background:#1A1A1A;color:#3B82F6;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Pro App</a>
-  <a href="/console.html" style="background:#1A1A1A;color:#A78BFA;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Console</a>
-  <a href="/architecture.html" style="background:#1A1A1A;color:#888;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Arch</a>
-</div>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>BailiwickQuikFix Pro</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:#0A0A0A;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
-    input::placeholder{color:#5A5A5A;}
-    ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2E2E2E;border-radius:2px;}
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-  <script>var useState=React.useState,useRef=React.useRef,useEffect=React.useEffect;</script>
-  <script>
-/* ═══════════════════════════════════════════════════════════
-   BAILIWICKQUIKFIX PRO APP
-   The contractor-facing app. Think Uber Driver.
-   Dark theme — pros use this on-site, outdoors, glare conditions.
-   Every tap target is oversized. Every state is unmistakable.
-═══════════════════════════════════════════════════════════ */
-
-const font = "'DM Sans', -apple-system, sans-serif";
-
-/* ── Design tokens — dark, high-contrast, field-ready ── */
-const P = {
-  bg: "#0A0A0A",
-  surf: "#141414",
-  card: "#1C1C1C",
-  lift: "#242424",
-  border: "#2E2E2E",
-  text: "#F5F5F5",
-  sub: "#A0A0A0",
-  muted: "#5A5A5A",
-  red: "#D32F2F",
-  redL: "#FF5252",
-  redBg: "#1A0000",
-  green: "#22C55E",
-  greenBg: "#052510",
-  amber: "#F59E0B",
-  amberBg: "#1A1200",
-  blue: "#3B82F6",
-  blueBg: "#071428",
-  white: "#FFFFFF",
-  qfx: "#10B981"
-};
-
-/* ── Mock data ── */
-const ME = {
-  id: 1,
-  name: "Maria Santos",
-  pronoun: "She/Her",
-  trade: "Plumber",
-  photo: "https://randomuser.me/api/portraits/women/44.jpg",
-  rating: 4.93,
-  jobs: 312,
-  trustScore: 98,
-  status: "online",
-  vehicle: "Blue Honda Civic · TXP 8821",
-  zip: "78704",
-  city: "Austin TX",
-  earnings: {
-    today: 185,
-    week: 1240,
-    pending: 65
-  },
-  badges: ["Background Check", "Licensed", "Top Rated", "$1M Insured"],
-  bankLast4: "4821"
-};
-const INCOMING_JOB = {
-  id: "BWK-9991G",
-  type: "plumbing",
-  fix: "Leaking kitchen faucet",
-  transcript: "My kitchen faucet has been dripping constantly for two days",
-  rate: 89,
-  total: 98.99,
-  urgency: "routine",
-  quikfix: true,
-  eta: 14,
-  distance: "2.1 miles away",
-  address: "3812 Walden Way, Austin TX 78704",
-  customerName: "Alex J.",
-  customerRating: 4.8,
-  notes: "Dispatch plumber for standard dripping faucet repair. Bring washer/cartridge kit for single and double-handle. Flat rate $89.",
-  timeLimit: 28
-};
-const ACTIVE_JOB = {
-  id: "BWK-9988F",
-  type: "plumbing",
-  fix: "Garbage disposal reset/unjam",
-  rate: 65,
-  total: 74.99,
-  address: "218 Barton Springs Rd, Austin TX 78704",
-  customerName: "Carlos M.",
-  customerPhone: null,
-  notes: "Dispatch plumber for disposal reset. Bring hex wrench. Reset button + manual unjam.",
-  stage: "enroute" // enroute → arrived → inprogress → complete
-};
-const PAST_JOBS = [{
-  id: "BWK-9945A",
-  fix: "Faucet repair",
-  date: "Today 9:14 AM",
-  earned: 75.65,
-  rating: 5,
-  tip: 5
-}, {
-  id: "BWK-9920C",
-  fix: "Toilet repair",
-  date: "Yesterday",
-  earned: 67.15,
-  rating: 5,
-  tip: 4.5
-}, {
-  id: "BWK-9901B",
-  fix: "Disposal reset",
-  date: "Apr 17",
-  earned: 55.25,
-  rating: 4,
-  tip: 4
-}, {
-  id: "BWK-9880D",
-  fix: "Sink unclog",
-  date: "Apr 16",
-  earned: 80.75,
-  rating: 5,
-  tip: 5
-}];
-
-/* ── Atoms ── */
-function BigBtn({
-  label,
-  sub,
-  onClick,
-  color = P.green,
-  disabled = false,
-  pulse = false
-}) {
-  return /*#__PURE__*/React.createElement("button", {
-    onClick: disabled ? null : onClick,
-    style: {
-      width: "100%",
-      background: disabled ? P.lift : color,
-      border: "none",
-      borderRadius: 18,
-      padding: "22px 20px",
-      cursor: disabled ? "not-allowed" : "pointer",
-      fontFamily: font,
-      transition: "all 0.2s",
-      opacity: disabled ? 0.4 : 1,
-      boxShadow: disabled ? "none" : `0 8px 32px ${color}55`,
-      animation: pulse && !disabled ? "btnPulse 2s ease-in-out infinite" : "none"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 20,
-      fontWeight: 800,
-      color: disabled ? P.muted : P.bg,
-      letterSpacing: -0.3
-    }
-  }, label), sub && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      fontWeight: 500,
-      color: disabled ? P.muted : P.bg + "CC",
-      marginTop: 4
-    }
-  }, sub));
-}
-function GhostBtn({
-  label,
-  onClick,
-  color = P.sub,
-  small = false
-}) {
-  return /*#__PURE__*/React.createElement("button", {
-    onClick: onClick,
-    style: {
-      background: "transparent",
-      border: `1.5px solid ${P.border}`,
-      borderRadius: 12,
-      padding: small ? "10px 18px" : "14px 20px",
-      fontFamily: font,
-      fontSize: small ? 13 : 15,
-      fontWeight: 600,
-      color,
-      cursor: "pointer",
-      transition: "all 0.15s"
-    },
-    onMouseEnter: e => {
-      e.currentTarget.style.borderColor = color;
-    },
-    onMouseLeave: e => {
-      e.currentTarget.style.borderColor = P.border;
-    }
-  }, label);
-}
-function StatusBadge({
-  status
-}) {
-  const M = {
-    online: [P.green, "● Online"],
-    busy: [P.amber, "● On Job"],
-    offline: [P.muted, "○ Offline"],
-    enroute: [P.qfx, "→ En Route"],
-    arrived: [P.blue, "◎ Arrived"],
-    inprogress: [P.amber, "⚙ In Progress"],
-    complete: [P.green, "✓ Complete"]
-  };
-  const [color, label] = M[status] || [P.muted, status];
-  return /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color,
-      background: color + "22",
-      borderRadius: 100,
-      padding: "4px 12px",
-      letterSpacing: 0.3
-    }
-  }, label);
-}
-function ProPhoto({
-  size = 48
-}) {
-  const [err, setErr] = useState(false);
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: size,
-      height: size,
-      borderRadius: "50%",
-      overflow: "hidden",
-      border: `2px solid ${P.green}`,
-      flexShrink: 0
-    }
-  }, !err ? /*#__PURE__*/React.createElement("img", {
-    src: ME.photo,
-    onError: () => setErr(true),
-    style: {
-      width: "100%",
-      height: "100%",
-      objectFit: "cover"
-    },
-    alt: ""
-  }) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: "100%",
-      height: "100%",
-      background: P.lift,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: size * 0.36,
-      fontWeight: 700,
-      color: P.sub
-    }
-  }, ME.name.split(" ").map(n => n[0]).join("")));
-}
-function Card({
-  children,
-  style = {},
-  accent
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.card,
-      border: `1px solid ${accent ? accent + "44" : P.border}`,
-      borderRadius: 18,
-      overflow: "hidden",
-      marginBottom: 12,
-      boxShadow: accent ? `0 4px 24px ${accent}22` : "none",
-      ...style
-    }
-  }, children);
-}
-function Row({
-  label,
-  value,
-  accent
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      padding: "12px 0",
-      borderBottom: `1px solid ${P.border}`
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: P.sub
-    }
-  }, label), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      fontWeight: 600,
-      color: accent || P.text,
-      textAlign: "right",
-      maxWidth: "58%",
-      lineHeight: 1.5
-    }
-  }, value));
-}
-
-/* ── Countdown ring ── */
-function CountdownRing({
-  total,
-  remaining
-}) {
-  const pct = remaining / total;
-  const r = 54,
-    circ = 2 * Math.PI * r;
-  const color = pct > 0.5 ? P.amber : pct > 0.25 ? P.redL : P.red;
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "relative",
-      width: 130,
-      height: 130,
-      margin: "0 auto"
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "130",
-    height: "130",
-    style: {
-      transform: "rotate(-90deg)"
-    }
-  }, /*#__PURE__*/React.createElement("circle", {
-    cx: "65",
-    cy: "65",
-    r: r,
-    fill: "none",
-    stroke: P.border,
-    strokeWidth: "8"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "65",
-    cy: "65",
-    r: r,
-    fill: "none",
-    stroke: color,
-    strokeWidth: "8",
-    strokeDasharray: circ,
-    strokeDashoffset: circ * (1 - pct),
-    strokeLinecap: "round",
-    style: {
-      transition: "stroke-dashoffset 1s linear,stroke 2s"
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      inset: 0,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 40,
-      fontWeight: 900,
-      color,
-      lineHeight: 1,
-      letterSpacing: -2
-    }
-  }, remaining), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1
-    }
-  }, "SEC")));
-}
-
-/* ── Mini map ── */
-function MiniMap({
-  destination,
-  stage
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "relative",
-      borderRadius: 14,
-      overflow: "hidden",
-      height: 160,
-      background: "#111",
-      marginBottom: 14
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    viewBox: "0 0 400 160",
-    width: "100%",
-    height: "160",
-    style: {
-      display: "block",
-      background: "#0f1419"
-    }
-  }, [40, 80, 120, 160, 200, 240, 280, 320, 360].map(x => /*#__PURE__*/React.createElement("line", {
-    key: `v${x}`,
-    x1: x,
-    y1: "0",
-    x2: x,
-    y2: "160",
-    stroke: "#1a2433",
-    strokeWidth: "1"
-  })), [32, 64, 96, 128].map(y => /*#__PURE__*/React.createElement("line", {
-    key: `h${y}`,
-    x1: "0",
-    y1: y,
-    x2: "400",
-    y2: y,
-    stroke: "#1a2433",
-    strokeWidth: "1"
-  })), /*#__PURE__*/React.createElement("line", {
-    x1: "0",
-    y1: "80",
-    x2: "400",
-    y2: "80",
-    stroke: "#232f3e",
-    strokeWidth: "3"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "200",
-    y1: "0",
-    x2: "200",
-    y2: "160",
-    stroke: "#232f3e",
-    strokeWidth: "3"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "0",
-    y1: "30",
-    x2: "400",
-    y2: "30",
-    stroke: "#1a2433",
-    strokeWidth: "2"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "80",
-    y1: "0",
-    x2: "80",
-    y2: "160",
-    stroke: "#1a2433",
-    strokeWidth: "2"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "60",
-    y1: "130",
-    x2: "320",
-    y2: "50",
-    stroke: P.qfx,
-    strokeWidth: "2.5",
-    strokeDasharray: "8,4",
-    strokeLinecap: "round",
-    opacity: "0.8"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "320",
-    cy: "50",
-    r: "12",
-    fill: P.red,
-    opacity: "0.2"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "320",
-    cy: "50",
-    r: "7",
-    fill: P.red
-  }), /*#__PURE__*/React.createElement("text", {
-    x: "320",
-    y: "37",
-    textAnchor: "middle",
-    fontSize: "8",
-    fill: P.red,
-    fontWeight: "700",
-    fontFamily: font
-  }, "DEST"), stage === "enroute" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("circle", {
-    cx: "60",
-    cy: "130",
-    r: "14",
-    fill: P.qfx,
-    opacity: "0.15"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "60",
-    cy: "130",
-    r: "8",
-    fill: P.qfx,
-    opacity: "0.3"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "60",
-    cy: "130",
-    r: "5",
-    fill: P.qfx
-  }), /*#__PURE__*/React.createElement("text", {
-    x: "60",
-    y: "118",
-    textAnchor: "middle",
-    fontSize: "7",
-    fill: P.qfx,
-    fontWeight: "700",
-    fontFamily: font
-  }, "YOU"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      bottom: 10,
-      left: 10,
-      right: 10,
-      background: "rgba(0,0,0,0.85)",
-      borderRadius: 10,
-      padding: "8px 12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: P.text
-    }
-  }, destination), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: P.sub,
-      marginTop: 1
-    }
-  }, "Navigate with Apple Maps")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 32,
-      height: 32,
-      borderRadius: "50%",
-      background: P.blue,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      flexShrink: 0
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "16",
-    height: "16",
-    viewBox: "0 0 24 24",
-    fill: "none"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M3 11l19-9-9 19-2-8-8-2z",
-    fill: "white"
-  })))));
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCREEN: ONBOARDING (new pro sign-up flow)
-═══════════════════════════════════════════════════════════ */
-function OnboardingScreen({
-  onDone
-}) {
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    trade: "plumbing",
-    zip: "",
-    years: "",
-    vehicle: "",
-    bankName: "",
-    bankAcct: ""
-  });
-  const set = (k, v) => setForm(f => ({
-    ...f,
-    [k]: v
-  }));
-  const STEPS = [{
-    title: "Welcome to\nBailiwickQuikFix",
-    sub: "Earn $65–125/hr. Jobs come to you.",
-    type: "intro"
-  }, {
-    title: "Your info",
-    sub: "Let's get you set up",
-    type: "form",
-    fields: [["Full name", "Jane Smith", "name", "text"], ["Email", "jane@email.com", "email", "email"], ["Mobile phone", "(512) 555-0100", "phone", "tel"]]
-  }, {
-    title: "Your trade",
-    sub: "What services do you provide?",
-    type: "trade"
-  }, {
-    title: "Service area",
-    sub: "Where do you work?",
-    type: "area"
-  }, {
-    title: "Identity check",
-    sub: "Government ID + selfie via Persona",
-    type: "verify",
-    partner: "Persona"
-  }, {
-    title: "Background check",
-    sub: "Criminal + sex offender check via Checkr",
-    type: "verify",
-    partner: "Checkr"
-  }, {
-    title: "License & insurance",
-    sub: "Upload your trade license and $1M COI",
-    type: "docs"
-  }, {
-    title: "Your vehicle",
-    sub: "Customers see this for tracking",
-    type: "form",
-    fields: [["Vehicle (year, make, model)", "2019 Honda Civic", "vehicle", "text"], ["License plate", "TXP 8821", "plate", "text"]]
-  }, {
-    title: "Payout setup",
-    sub: "Direct deposit via Stripe — paid within 24 hrs",
-    type: "bank"
-  }, {
-    title: "You're all set!",
-    sub: "Welcome to the network",
-    type: "done"
-  }];
-  const TRADES = ["Plumber", "Electrician", "Handyman", "Drywall Pro", "HVAC Tech", "Appliance Tech", "Locksmith", "Painter"];
-  const s = STEPS[step];
-  const isLast = step === STEPS.length - 1;
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      minHeight: "100vh",
-      background: P.bg,
-      fontFamily: font,
-      color: P.text,
-      display: "flex",
-      flexDirection: "column"
-    }
-  }, step > 0 && step < STEPS.length - 1 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: 3,
-      background: P.border
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: "100%",
-      background: P.green,
-      width: `${step / (STEPS.length - 2) * 100}%`,
-      transition: "width 0.4s ease"
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      maxWidth: 480,
-      margin: "0 auto",
-      width: "100%",
-      padding: "32px 20px 120px",
-      display: "flex",
-      flexDirection: "column"
-    }
-  }, step > 0 && step < STEPS.length - 1 && /*#__PURE__*/React.createElement("button", {
-    onClick: () => setStep(s => s - 1),
-    style: {
-      background: "transparent",
-      border: "none",
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      gap: 6,
-      color: P.sub,
-      fontFamily: font,
-      fontSize: 13,
-      fontWeight: 600,
-      marginBottom: 24,
-      padding: 0
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "16",
-    height: "16",
-    viewBox: "0 0 16 16",
-    fill: "none"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M10 3L5 8L10 13",
-    stroke: "currentColor",
-    strokeWidth: "1.8",
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-  })), "Back"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: s.type === "intro" ? 48 : 32
-    }
-  }, s.type === "intro" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: "center",
-      marginBottom: 28
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 52,
-      marginBottom: 12
-    }
-  }, "\u26A1"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 22,
-      fontWeight: 800,
-      color: P.text,
-      letterSpacing: -0.3
-    }
-  }, "Bailiwick", /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: P.red
-    }
-  }, "QuikFix")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: P.muted,
-      fontWeight: 600,
-      letterSpacing: 1.5,
-      marginTop: 4
-    }
-  }, "PRO APP")), /*#__PURE__*/React.createElement("h1", {
-    style: {
-      fontSize: s.type === "intro" ? 32 : 28,
-      fontWeight: 900,
-      color: P.text,
-      letterSpacing: -0.8,
-      margin: "0 0 10px",
-      lineHeight: 1.1,
-      whiteSpace: "pre-line",
-      textAlign: s.type === "intro" ? "center" : "left"
-    }
-  }, s.title), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 15,
-      color: P.sub,
-      margin: 0,
-      textAlign: s.type === "intro" ? "center" : "left"
-    }
-  }, s.sub)), s.type === "form" && s.fields && /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, s.fields.map(([label, ph, key, type]) => /*#__PURE__*/React.createElement("div", {
-    key: key,
-    style: {
-      marginBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 12,
-      fontWeight: 600,
-      color: P.sub,
-      display: "block",
-      marginBottom: 6
-    }
-  }, label), /*#__PURE__*/React.createElement("input", {
-    value: form[key] || "",
-    onChange: e => set(key, e.target.value),
-    placeholder: ph,
-    type: type,
-    style: {
-      width: "100%",
-      background: P.lift,
-      border: `1px solid ${P.border}`,
-      borderRadius: 12,
-      padding: "15px 16px",
-      fontSize: 16,
-      color: P.text,
-      outline: "none",
-      boxSizing: "border-box",
-      fontFamily: font,
-      transition: "border-color 0.15s"
-    },
-    onFocus: e => e.target.style.borderColor = P.green,
-    onBlur: e => e.target.style.borderColor = P.border
-  })))), s.type === "trade" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 10,
-      flex: 1
-    }
-  }, TRADES.map(t => /*#__PURE__*/React.createElement("button", {
-    key: t,
-    onClick: () => setForm(f => ({
-      ...f,
-      trade: t.toLowerCase()
-    })),
-    style: {
-      background: form.trade === t.toLowerCase() ? P.green + "22" : P.lift,
-      border: `1.5px solid ${form.trade === t.toLowerCase() ? P.green : P.border}`,
-      borderRadius: 14,
-      padding: "18px 14px",
-      cursor: "pointer",
-      fontFamily: font,
-      fontSize: 14,
-      fontWeight: 700,
-      color: form.trade === t.toLowerCase() ? P.green : P.text,
-      transition: "all 0.15s",
-      textAlign: "center"
-    }
-  }, t))), s.type === "area" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 12,
-      fontWeight: 600,
-      color: P.sub,
-      display: "block",
-      marginBottom: 6
-    }
-  }, "Home ZIP code"), /*#__PURE__*/React.createElement("input", {
-    value: form.zip,
-    onChange: e => set("zip", e.target.value.slice(0, 5)),
-    placeholder: "78704",
-    maxLength: 5,
-    style: {
-      width: "100%",
-      background: P.lift,
-      border: `1px solid ${P.border}`,
-      borderRadius: 12,
-      padding: "15px 16px",
-      fontSize: 20,
-      color: P.text,
-      outline: "none",
-      boxSizing: "border-box",
-      fontFamily: font,
-      letterSpacing: 4,
-      textAlign: "center",
-      fontWeight: 700
-    },
-    onFocus: e => e.target.style.borderColor = P.green,
-    onBlur: e => e.target.style.borderColor = P.border
-  }), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: P.muted,
-      marginTop: 12,
-      lineHeight: 1.7
-    }
-  }, "We dispatch jobs within a 30-minute drive of this location. You can adjust your service area after setup."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 14,
-      padding: 16,
-      marginTop: 16,
-      textAlign: "center"
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    viewBox: "0 0 200 120",
-    width: "100%",
-    height: "120",
-    style: {
-      display: "block"
-    }
-  }, /*#__PURE__*/React.createElement("circle", {
-    cx: "100",
-    cy: "60",
-    r: "50",
-    fill: P.green,
-    opacity: "0.06",
-    stroke: P.green,
-    strokeWidth: "1",
-    strokeDasharray: "4,3"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "100",
-    cy: "60",
-    r: "32",
-    fill: P.green,
-    opacity: "0.08",
-    stroke: P.green,
-    strokeWidth: "1",
-    strokeDasharray: "4,3"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "100",
-    cy: "60",
-    r: "8",
-    fill: P.green,
-    opacity: "0.4"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "100",
-    cy: "60",
-    r: "4",
-    fill: P.green
-  }), /*#__PURE__*/React.createElement("text", {
-    x: "100",
-    y: "125",
-    textAnchor: "middle",
-    fontSize: "9",
-    fill: P.muted,
-    fontFamily: font
-  }, "30 min drive radius")), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 11,
-      color: P.muted,
-      margin: "8px 0 0"
-    }
-  }, "Jobs dispatched within your drive zone"))), s.type === "verify" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 18,
-      padding: 24,
-      textAlign: "center",
-      marginBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 64,
-      height: 64,
-      borderRadius: 18,
-      background: P.lift,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      margin: "0 auto 16px"
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "32",
-    height: "32",
-    viewBox: "0 0 24 24",
-    fill: "none"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
-    stroke: P.green,
-    strokeWidth: "1.8",
-    strokeLinejoin: "round"
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16,
-      fontWeight: 800,
-      color: P.text,
-      marginBottom: 8
-    }
-  }, "Powered by ", s.partner), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: P.sub,
-      lineHeight: 1.7
-    }
-  }, s.partner === "Persona" ? "Take a photo of your government-issued ID, then a quick selfie. Takes about 2 minutes." : "We run a national criminal background check. Results typically in 1–2 business days.")), /*#__PURE__*/React.createElement(BigBtn, {
-    label: `Start ${s.partner} Check`,
-    color: P.green,
-    onClick: () => setStep(s => s + 1)
-  }), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 11,
-      color: P.muted,
-      textAlign: "center",
-      marginTop: 10
-    }
-  }, "Secure \xB7 Encrypted \xB7 Same tech used by Uber and Airbnb")), s.type === "docs" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, [{
-    label: "Trade License",
-    sub: "State-issued license for your trade",
-    icon: "📋"
-  }, {
-    label: "Certificate of Insurance",
-    sub: "$1M general liability minimum",
-    icon: "🛡️"
-  }].map((doc, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 14,
-      padding: 16,
-      marginBottom: 10,
-      display: "flex",
-      gap: 14,
-      alignItems: "center",
-      cursor: "pointer"
-    },
-    onClick: () => {}
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      background: P.lift,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: 22,
-      flexShrink: 0
-    }
-  }, doc.icon), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: P.text,
-      marginBottom: 2
-    }
-  }, doc.label), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: P.sub
-    }
-  }, doc.sub)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.lift,
-      borderRadius: 8,
-      padding: "6px 12px",
-      fontSize: 12,
-      fontWeight: 600,
-      color: P.muted
-    }
-  }, "Upload"))), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 12,
-      color: P.muted,
-      marginTop: 12,
-      lineHeight: 1.7
-    }
-  }, "Your documents are reviewed within 1 business day. You'll be notified when approved.")), s.type === "bank" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 14,
-      padding: 16,
-      marginBottom: 14
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1.5,
-      marginBottom: 12
-    }
-  }, "PAYOUT SCHEDULE"), [["Standard payout", "Next business day · free"], ["Instant payout", "Same day · 1.5% fee"]].map(([k, v]) => /*#__PURE__*/React.createElement("div", {
-    key: k,
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "9px 0",
-      borderBottom: `1px solid ${P.border}`
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: P.sub
-    }
-  }, k), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      fontWeight: 600,
-      color: P.text
-    }
-  }, v)))), [["Bank name", "Chase, Wells Fargo…", "bankName", "text"], ["Account number", "••••••4821", "bankAcct", "text"]].map(([label, ph, key, type]) => /*#__PURE__*/React.createElement("div", {
-    key: key,
-    style: {
-      marginBottom: 14
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 12,
-      fontWeight: 600,
-      color: P.sub,
-      display: "block",
-      marginBottom: 6
-    }
-  }, label), /*#__PURE__*/React.createElement("input", {
-    value: form[key] || "",
-    onChange: e => set(key, e.target.value),
-    placeholder: ph,
-    type: type,
-    style: {
-      width: "100%",
-      background: P.lift,
-      border: `1px solid ${P.border}`,
-      borderRadius: 12,
-      padding: "15px 16px",
-      fontSize: 15,
-      color: P.text,
-      outline: "none",
-      boxSizing: "border-box",
-      fontFamily: font
-    },
-    onFocus: e => e.target.style.borderColor = P.green,
-    onBlur: e => e.target.style.borderColor = P.border
-  }))), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 11,
-      color: P.muted,
-      lineHeight: 1.7
-    }
-  }, "Bank details secured via Stripe Connect. BailiwickQuikFix never stores your account number.")), s.type === "done" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      textAlign: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 80,
-      height: 80,
-      borderRadius: "50%",
-      background: P.green + "22",
-      border: `2px solid ${P.green}`,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      margin: "0 auto 24px",
-      fontSize: 40
-    }
-  }, "\u2713"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 15,
-      color: P.sub,
-      lineHeight: 1.8,
-      marginBottom: 28
-    }
-  }, "Your application is under review. We'll notify you within 1 business day when you're cleared to take jobs."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 14,
-      padding: 16,
-      textAlign: "left"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1.5,
-      marginBottom: 10
-    }
-  }, "WHAT HAPPENS NEXT"), ["Identity check · 5 min", "Background check · 1–2 days", "License verification · 1 day", "You get notified via SMS", "First jobs start coming in"].map((t, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      display: "flex",
-      gap: 10,
-      padding: "8px 0",
-      borderBottom: i < 4 ? `1px solid ${P.border}` : "none"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 20,
-      height: 20,
-      borderRadius: "50%",
-      background: P.lift,
-      border: `1px solid ${P.border}`,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: 10,
-      fontWeight: 700,
-      color: P.muted,
-      flexShrink: 0
-    }
-  }, i + 1), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: P.sub
-    }
-  }, t)))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: P.bg + "F5",
-      backdropFilter: "blur(16px)",
-      padding: "16px 20px 32px",
-      borderTop: `1px solid ${P.border}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: 480,
-      margin: "0 auto"
-    }
-  }, !isLast ? /*#__PURE__*/React.createElement(BigBtn, {
-    label: step === 0 ? "Get Started →" : "Continue →",
-    color: P.green,
-    onClick: () => setStep(s => s + 1)
-  }) : /*#__PURE__*/React.createElement(BigBtn, {
-    label: "Go to Dashboard \u2192",
-    color: P.green,
-    onClick: onDone
-  }), step === 0 && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 11,
-      color: P.muted,
-      textAlign: "center",
-      marginTop: 10
-    }
-  }, "Background check \xB7 License verification \xB7 $1M COI required"))), /*#__PURE__*/React.createElement("style", null, `
-        @keyframes btnPulse{0%,100%{box-shadow:0 8px 32px #22C55E55}50%{box-shadow:0 8px 48px #22C55E99}}
-      `));
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCREEN: INCOMING JOB ALERT
-═══════════════════════════════════════════════════════════ */
-function IncomingJobScreen({
-  onAccept,
-  onDecline
-}) {
-  const [remaining, setRemaining] = useState(INCOMING_JOB.timeLimit);
-  useEffect(() => {
-    if (remaining <= 0) {
-      onDecline();
-      return;
-    }
-    const t = setTimeout(() => setRemaining(r => r - 1), 1000);
-    return () => clearTimeout(t);
-  }, [remaining]);
-  const urgencyColor = INCOMING_JOB.urgency === "emergency" ? P.red : INCOMING_JOB.urgency === "urgent" ? P.amber : P.green;
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      minHeight: "100vh",
-      background: P.bg,
-      fontFamily: font,
-      color: P.text,
-      display: "flex",
-      flexDirection: "column",
-      animation: "slideUp 0.35s ease"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: INCOMING_JOB.quikfix ? P.green + "18" : P.lift,
-      borderBottom: `1px solid ${INCOMING_JOB.quikfix ? P.green + "44" : P.border}`,
-      padding: "16px 20px",
-      textAlign: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      letterSpacing: 2,
-      color: INCOMING_JOB.quikfix ? P.green : P.amber
-    }
-  }, INCOMING_JOB.quikfix ? "⚡ QUIKFIX JOB" : "STANDARD JOB"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 600,
-      color: P.sub,
-      marginTop: 2
-    }
-  }, "New job request \u2014 respond in time")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      maxWidth: 480,
-      margin: "0 auto",
-      width: "100%",
-      padding: "24px 20px 160px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: "center",
-      marginBottom: 24
-    }
-  }, /*#__PURE__*/React.createElement(CountdownRing, {
-    total: INCOMING_JOB.timeLimit,
-    remaining: remaining
-  }), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 13,
-      color: P.sub,
-      marginTop: 10
-    }
-  }, "Auto-declines if no response")), /*#__PURE__*/React.createElement(Card, {
-    accent: urgencyColor
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "18px 20px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      marginBottom: 14
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1.5,
-      marginBottom: 4
-    }
-  }, INCOMING_JOB.id), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 20,
-      fontWeight: 800,
-      color: P.text,
-      letterSpacing: -0.3,
-      marginBottom: 4
-    }
-  }, INCOMING_JOB.fix), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: P.sub,
-      fontStyle: "italic"
-    }
-  }, "\"", INCOMING_JOB.transcript, "\"")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: "right",
-      flexShrink: 0,
-      marginLeft: 14
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 36,
-      fontWeight: 900,
-      color: P.green,
-      letterSpacing: -1,
-      lineHeight: 1
-    }
-  }, "$", INCOMING_JOB.rate), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      fontWeight: 700,
-      color: P.muted,
-      marginTop: 2
-    }
-  }, "YOUR TAKE"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: 1,
-      background: P.border,
-      margin: "14px 0"
-    }
-  }), /*#__PURE__*/React.createElement(Row, {
-    label: "\uD83D\uDCCD Distance",
-    value: INCOMING_JOB.distance
-  }), /*#__PURE__*/React.createElement(Row, {
-    label: "\uD83C\uDFE0 Address",
-    value: INCOMING_JOB.address
-  }), /*#__PURE__*/React.createElement(Row, {
-    label: "\u23F1 Est. job duration",
-    value: "~30 min"
-  }), /*#__PURE__*/React.createElement(Row, {
-    label: "\uD83D\uDCB3 Customer pays",
-    value: `$${INCOMING_JOB.total}`
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "12px 0"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1.5,
-      marginBottom: 6
-    }
-  }, "PREP NOTE"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: P.sub,
-      lineHeight: 1.65
-    }
-  }, INCOMING_JOB.notes)))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "14px 20px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: P.text
-    }
-  }, INCOMING_JOB.customerName), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 4,
-      marginTop: 3
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 12,
-      color: P.amber
-    }
-  }, "\u2605 ", INCOMING_JOB.customerRating), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: P.muted
-    }
-  }, "customer rating"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: P.muted,
-      textAlign: "right"
-    }
-  }, "No phone number shared", /*#__PURE__*/React.createElement("br", null), "In-app messaging only")))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: P.bg + "F8",
-      backdropFilter: "blur(20px)",
-      padding: "16px 20px 36px",
-      borderTop: `1px solid ${P.border}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: 480,
-      margin: "0 auto",
-      display: "grid",
-      gridTemplateColumns: "1fr 2fr",
-      gap: 10
-    }
-  }, /*#__PURE__*/React.createElement(GhostBtn, {
-    label: "Decline",
-    onClick: onDecline,
-    color: P.muted
-  }), /*#__PURE__*/React.createElement(BigBtn, {
-    label: `Accept · $${INCOMING_JOB.rate}`,
-    sub: `${remaining}s remaining`,
-    color: P.green,
-    onClick: onAccept,
-    pulse: remaining <= 10
-  }))));
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCREEN: ACTIVE JOB
-═══════════════════════════════════════════════════════════ */
-function ActiveJobScreen({
-  onComplete
-}) {
-  const [stage, setStage] = useState("enroute");
-  const [msgs, setMsgs] = useState([{
-    from: "customer",
-    text: "Hi! Just to confirm — it's the kitchen sink faucet.",
-    ts: "2:34 PM"
-  }]);
-  const [input, setInput] = useState("");
-  const [tab, setTab] = useState("job");
-  const [photos, setPhotos] = useState({
-    before: false,
-    after: false
-  });
-  const endRef = useRef(null);
-  useEffect(() => {
-    endRef.current?.scrollIntoView({
-      behavior: "smooth"
-    });
-  }, [msgs, tab]);
-  const STAGES = [{
-    id: "enroute",
-    label: "En Route",
-    sub: "Head to customer location"
-  }, {
-    id: "arrived",
-    label: "Arrived",
-    sub: "Let the customer know you're here"
-  }, {
-    id: "inprogress",
-    label: "In Progress",
-    sub: "Job underway"
-  }, {
-    id: "complete",
-    label: "Job Complete",
-    sub: "Upload after photo to finish"
-  }];
-  const stageIdx = STAGES.findIndex(s => s.id === stage);
-  const nextStage = STAGES[stageIdx + 1];
-  const stageColor = stage === "complete" ? P.green : stage === "inprogress" ? P.amber : P.qfx;
-  function advanceStage() {
-    const next = STAGES[stageIdx + 1];
-    if (next) setStage(next.id);
-    if (next?.id === "complete") setPhotos(p => ({
-      ...p,
-      after: true
-    }));
-  }
-  function sendMsg() {
-    if (!input.trim()) return;
-    setMsgs(m => [...m, {
-      from: "me",
-      text: input.trim(),
-      ts: "Now"
-    }]);
-    setInput("");
-    setTimeout(() => setMsgs(m => [...m, {
-      from: "customer",
-      text: "Great, thanks!",
-      ts: "Now"
-    }]), 800);
-  }
-  const canComplete = stage === "complete" && photos.after;
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      minHeight: "100vh",
-      background: P.bg,
-      fontFamily: font,
-      color: P.text,
-      display: "flex",
-      flexDirection: "column"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: stageColor + "18",
-      borderBottom: `1px solid ${stageColor}33`,
-      padding: "12px 20px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: stageColor,
-      letterSpacing: 1.5
-    }
-  }, ACTIVE_JOB.id, " \xB7 ", ACTIVE_JOB.fix.toUpperCase()), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: P.text,
-      marginTop: 2
-    }
-  }, STAGES[stageIdx].label)), /*#__PURE__*/React.createElement(StatusBadge, {
-    status: stage
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      background: P.surf,
-      borderBottom: `1px solid ${P.border}`
-    }
-  }, [["job", "Job"], ["map", "Map"], ["chat", "Chat"]].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
-    key: id,
-    onClick: () => setTab(id),
-    style: {
-      flex: 1,
-      padding: "12px 0",
-      background: "transparent",
-      border: "none",
-      fontFamily: font,
-      fontSize: 13,
-      fontWeight: 700,
-      cursor: "pointer",
-      color: tab === id ? stageColor : P.muted,
-      borderBottom: `2px solid ${tab === id ? stageColor : "transparent"}`,
-      transition: "all 0.15s"
-    }
-  }, label, id === "chat" && /*#__PURE__*/React.createElement("span", {
-    style: {
-      marginLeft: 5,
-      background: P.red,
-      color: P.white,
-      borderRadius: "50%",
-      fontSize: 9,
-      fontWeight: 800,
-      padding: "1px 5px",
-      verticalAlign: "top"
-    }
-  }, msgs.filter(m => m.from === "customer").length)))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      maxWidth: 480,
-      margin: "0 auto",
-      width: "100%",
-      padding: "16px 20px 140px",
-      overflowY: "auto"
-    }
-  }, tab === "job" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      animation: "up 0.2s ease"
-    }
-  }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "16px 20px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1.5,
-      marginBottom: 14
-    }
-  }, "JOB PROGRESS"), STAGES.map((s, i) => {
-    const done = i < stageIdx;
-    const active = i === stageIdx;
-    return /*#__PURE__*/React.createElement("div", {
-      key: s.id,
-      style: {
-        display: "flex",
-        gap: 14,
-        paddingBottom: i < STAGES.length - 1 ? 14 : 0,
-        marginBottom: i < STAGES.length - 1 ? 14 : 0,
-        borderBottom: i < STAGES.length - 1 ? `1px solid ${P.border}` : "none",
-        opacity: done || active ? 1 : 0.3
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 32,
-        height: 32,
-        borderRadius: "50%",
-        flexShrink: 0,
-        background: done ? P.green : active ? stageColor : P.lift,
-        border: `1.5px solid ${done ? P.green : active ? stageColor : P.border}`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 14,
-        fontWeight: 700,
-        color: done || active ? P.bg : P.muted
-      }
-    }, done ? "✓" : i + 1), /*#__PURE__*/React.createElement("div", {
-      style: {
-        paddingTop: 4
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 14,
-        fontWeight: 700,
-        color: active ? P.text : done ? P.sub : P.muted
-      }
-    }, s.label), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: P.muted,
-        marginTop: 2
-      }
-    }, s.sub)));
-  }))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "16px 20px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1.5,
-      marginBottom: 10
-    }
-  }, "DISPATCH NOTES"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: P.sub,
-      lineHeight: 1.7,
-      borderLeft: `3px solid ${P.amber}`,
-      paddingLeft: 12
-    }
-  }, ACTIVE_JOB.notes))), (stage === "enroute" || stage === "arrived" || stage === "inprogress" || stage === "complete") && /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "16px 20px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: P.muted,
-      letterSpacing: 1.5,
-      marginBottom: 12
-    }
-  }, "REQUIRED PHOTOS"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 10
-    }
-  }, [["before", "Before", "Take on arrival"], ["after", "After", "Take on completion"]].map(([k, label, sub]) => /*#__PURE__*/React.createElement("div", {
-    key: k,
-    onClick: () => stage !== "enroute" && setPhotos(p => ({
-      ...p,
-      [k]: true
-    })),
-    style: {
-      background: photos[k] ? P.green + "18" : P.lift,
-      border: `1.5px solid ${photos[k] ? P.green : P.border}`,
-      borderRadius: 12,
-      padding: "14px",
-      textAlign: "center",
-      cursor: "pointer",
-      transition: "all 0.15s"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 24,
-      marginBottom: 6
-    }
-  }, photos[k] ? "✓" : "📷"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: photos[k] ? P.green : P.text
-    }
-  }, label), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: P.muted,
-      marginTop: 2
-    }
-  }, sub)))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "16px 20px"
-    }
-  }, /*#__PURE__*/React.createElement(Row, {
-    label: "Customer",
-    value: ACTIVE_JOB.customerName
-  }), /*#__PURE__*/React.createElement(Row, {
-    label: "Address",
-    value: ACTIVE_JOB.address
-  }), /*#__PURE__*/React.createElement(Row, {
-    label: "Your rate",
-    value: `$${ACTIVE_JOB.rate}`
-  }), /*#__PURE__*/React.createElement(Row, {
-    label: "Customer total",
-    value: `$${ACTIVE_JOB.total}`
-  })))), tab === "map" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      animation: "up 0.2s ease"
-    }
-  }, /*#__PURE__*/React.createElement(MiniMap, {
-    destination: ACTIVE_JOB.address,
-    stage: stage
-  }), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "16px 20px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16,
-      fontWeight: 800,
-      color: P.text,
-      marginBottom: 4
-    }
-  }, ACTIVE_JOB.address), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: P.sub
-    }
-  }, stage === "enroute" ? "Tap to open in Apple Maps or Google Maps" : "You are on-site"), stage === "enroute" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      marginTop: 14
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    style: {
-      flex: 1,
-      background: P.lift,
-      border: `1px solid ${P.border}`,
-      borderRadius: 10,
-      padding: "11px",
-      fontFamily: font,
-      fontSize: 13,
-      fontWeight: 600,
-      color: P.text,
-      cursor: "pointer"
-    }
-  }, "Apple Maps"), /*#__PURE__*/React.createElement("button", {
-    style: {
-      flex: 1,
-      background: P.lift,
-      border: `1px solid ${P.border}`,
-      borderRadius: 10,
-      padding: "11px",
-      fontFamily: font,
-      fontSize: 13,
-      fontWeight: 600,
-      color: P.text,
-      cursor: "pointer"
-    }
-  }, "Google Maps"))))), tab === "chat" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      animation: "up 0.2s ease"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 14,
-      padding: "10px 14px",
-      marginBottom: 12,
-      textAlign: "center",
-      fontSize: 11,
-      color: P.muted
-    }
-  }, "Encrypted \xB7 in-app only \xB7 no phone numbers shared"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 10,
-      minHeight: 240
-    }
-  }, msgs.map((m, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: m.from === "me" ? "flex-end" : "flex-start"
-    }
-  }, m.from === "customer" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: P.muted,
-      marginBottom: 3
-    }
-  }, ACTIVE_JOB.customerName), /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: "78%",
-      padding: "10px 14px",
-      borderRadius: 14,
-      fontSize: 14,
-      lineHeight: 1.55,
-      background: m.from === "me" ? P.green : P.card,
-      color: m.from === "me" ? P.bg : P.text,
-      borderBottomRightRadius: m.from === "me" ? 3 : 14,
-      borderBottomLeftRadius: m.from === "me" ? 14 : 3
-    }
-  }, m.text), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 10,
-      color: P.muted,
-      marginTop: 3
-    }
-  }, m.ts))), /*#__PURE__*/React.createElement("div", {
-    ref: endRef
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: P.bg + "F8",
-      backdropFilter: "blur(20px)",
-      padding: "16px 20px 36px",
-      borderTop: `1px solid ${P.border}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: 480,
-      margin: "0 auto"
-    }
-  }, tab === "chat" ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: input,
-    onChange: e => setInput(e.target.value),
-    onKeyDown: e => e.key === "Enter" && sendMsg(),
-    placeholder: "Message customer\u2026",
-    style: {
-      flex: 1,
-      background: P.lift,
-      border: `1px solid ${P.border}`,
-      borderRadius: 100,
-      padding: "13px 18px",
-      fontSize: 14,
-      color: P.text,
-      outline: "none",
-      fontFamily: font
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: sendMsg,
-    style: {
-      width: 48,
-      height: 48,
-      borderRadius: "50%",
-      flexShrink: 0,
-      background: input.trim() ? P.green : P.lift,
-      border: "none",
-      color: input.trim() ? P.bg : P.muted,
-      fontSize: 20,
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    }
-  }, "\u2191")) : stage === "complete" ? /*#__PURE__*/React.createElement(BigBtn, {
-    label: "Submit & Complete Job \u2713",
-    sub: canComplete ? "Payment will be captured" : "Upload after photo first",
-    color: canComplete ? P.green : P.lift,
-    disabled: !canComplete,
-    onClick: onComplete
-  }) : /*#__PURE__*/React.createElement(BigBtn, {
-    label: nextStage ? `Mark as ${nextStage.label} →` : "Done",
-    color: stageColor,
-    onClick: advanceStage
-  }))));
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCREEN: DASHBOARD (home when online)
-═══════════════════════════════════════════════════════════ */
-function DashboardScreen({
-  onIncomingJob,
-  onStatusChange
-}) {
-  const [status, setStatus] = useState("online");
-  const [tab, setTab] = useState("home");
-  function toggleStatus() {
-    const next = status === "online" ? "offline" : "online";
-    setStatus(next);
-    onStatusChange(next);
-  }
-
-  // Simulate incoming job after 4s if online
-  useEffect(() => {
-    if (status !== "online") return;
-    const t = setTimeout(onIncomingJob, 4000);
-    return () => clearTimeout(t);
-  }, [status]);
-  const TAB_SCREENS = {
-    home: /*#__PURE__*/React.createElement("div", {
-      style: {
-        animation: "up 0.3s ease"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: P.card,
-        border: `1px solid ${P.border}`,
-        borderRadius: 20,
-        padding: "24px 20px",
-        marginBottom: 12,
-        textAlign: "center",
-        position: "relative",
-        overflow: "hidden"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: "absolute",
-        inset: 0,
-        background: "linear-gradient(135deg,transparent 60%,#22C55E08)"
-      }
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        fontWeight: 700,
-        color: P.muted,
-        letterSpacing: 1.5,
-        marginBottom: 8
-      }
-    }, "TODAY'S EARNINGS"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 56,
-        fontWeight: 900,
-        color: P.green,
-        letterSpacing: -2,
-        lineHeight: 1
-      }
-    }, "$", ME.earnings.today), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        justifyContent: "center",
-        gap: 20,
-        marginTop: 14
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        textAlign: "center"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 18,
-        fontWeight: 800,
-        color: P.text
-      }
-    }, "$", ME.earnings.week), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 10,
-        color: P.muted,
-        marginTop: 2
-      }
-    }, "This week")), /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 1,
-        background: P.border
-      }
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        textAlign: "center"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 18,
-        fontWeight: 800,
-        color: P.amber
-      }
-    }, "$", ME.earnings.pending), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 10,
-        color: P.muted,
-        marginTop: 2
-      }
-    }, "Pending")), /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 1,
-        background: P.border
-      }
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        textAlign: "center"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 18,
-        fontWeight: 800,
-        color: P.text
-      }
-    }, PAST_JOBS.filter(j => j.date.includes("Today")).length), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 10,
-        color: P.muted,
-        marginTop: 2
-      }
-    }, "Jobs today")))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: status === "online" ? P.green + "18" : P.lift,
-        border: `1px solid ${status === "online" ? P.green + "44" : P.border}`,
-        borderRadius: 18,
-        padding: "20px",
-        marginBottom: 12,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between"
-      }
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 16,
-        fontWeight: 800,
-        color: P.text,
-        marginBottom: 2
-      }
-    }, status === "online" ? "You're online" : "You're offline"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        color: P.sub
-      }
-    }, status === "online" ? "Jobs may come in at any time" : "Go online to start receiving jobs")), /*#__PURE__*/React.createElement("div", {
-      onClick: toggleStatus,
-      style: {
-        width: 56,
-        height: 30,
-        borderRadius: 100,
-        cursor: "pointer",
-        background: status === "online" ? P.green : P.border,
-        position: "relative",
-        transition: "background 0.3s",
-        flexShrink: 0
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: "absolute",
-        top: 3,
-        left: status === "online" ? 30 : 3,
-        width: 24,
-        height: 24,
-        borderRadius: "50%",
-        background: P.white,
-        transition: "left 0.3s",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.3)"
-      }
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr 1fr",
-        gap: 8,
-        marginBottom: 12
-      }
-    }, [["Rating", `★ ${ME.rating}`, P.amber], ["Trust", `${ME.trustScore}/100`, P.green], ["Jobs", ME.jobs, P.blue]].map(([label, value, color]) => /*#__PURE__*/React.createElement("div", {
-      key: label,
-      style: {
-        background: P.card,
-        border: `1px solid ${P.border}`,
-        borderRadius: 14,
-        padding: "14px 12px",
-        textAlign: "center"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 18,
-        fontWeight: 800,
-        color,
-        letterSpacing: -0.3
-      }
-    }, value), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 10,
-        color: P.muted,
-        marginTop: 4
-      }
-    }, label)))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        fontWeight: 700,
-        color: P.muted,
-        letterSpacing: 1.5,
-        marginBottom: 10
-      }
-    }, "RECENT JOBS"), /*#__PURE__*/React.createElement(Card, null, PAST_JOBS.map((j, i) => /*#__PURE__*/React.createElement("div", {
-      key: j.id,
-      style: {
-        display: "flex",
-        gap: 12,
-        alignItems: "center",
-        padding: "13px 18px",
-        borderBottom: i < PAST_JOBS.length - 1 ? `1px solid ${P.border}` : "none"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 14,
-        fontWeight: 600,
-        color: P.text,
-        marginBottom: 2
-      }
-    }, j.fix), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: P.muted
-      }
-    }, j.date)), /*#__PURE__*/React.createElement("div", {
-      style: {
-        textAlign: "right"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 14,
-        fontWeight: 800,
-        color: P.green
-      }
-    }, "$", j.earned), j.tip > 0 && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 10,
-        color: P.amber
-      }
-    }, "+$", j.tip, " tip"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        color: P.amber
-      }
-    }, "★".repeat(j.rating)))))), status === "online" && /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: P.green + "14",
-        border: `1px solid ${P.green}33`,
-        borderRadius: 14,
-        padding: "12px 16px",
-        marginTop: 4,
-        textAlign: "center",
-        fontSize: 12,
-        color: P.green,
-        fontWeight: 600
-      }
-    }, "Watching for jobs near ", ME.zip, "\u2026 \xB7 30-min dispatch radius active")),
-    account: /*#__PURE__*/React.createElement("div", {
-      style: {
-        animation: "up 0.3s ease"
-      }
-    }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: "20px"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        gap: 14,
-        alignItems: "center",
-        marginBottom: 20,
-        paddingBottom: 20,
-        borderBottom: `1px solid ${P.border}`
-      }
-    }, /*#__PURE__*/React.createElement(ProPhoto, {
-      size: 64
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 20,
-        fontWeight: 800,
-        color: P.text,
-        marginBottom: 2
-      }
-    }, ME.name), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 13,
-        color: P.sub,
-        marginBottom: 8
-      }
-    }, ME.pronoun, " \xB7 ", ME.trade), /*#__PURE__*/React.createElement(StatusBadge, {
-      status: status
-    }))), /*#__PURE__*/React.createElement(Row, {
-      label: "Vehicle",
-      value: ME.vehicle
-    }), /*#__PURE__*/React.createElement(Row, {
-      label: "Home ZIP",
-      value: ME.zip
-    }), /*#__PURE__*/React.createElement(Row, {
-      label: "Bank payout",
-      value: `••••${ME.bankLast4}`
-    }), /*#__PURE__*/React.createElement(Row, {
-      label: "Payout schedule",
-      value: "Next business day"
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 11,
-        fontWeight: 700,
-        color: P.muted,
-        letterSpacing: 1.5,
-        margin: "4px 0 10px"
-      }
-    }, "VERIFIED BADGES"), /*#__PURE__*/React.createElement(Card, null, ME.badges.map((b, i) => /*#__PURE__*/React.createElement("div", {
-      key: b,
-      style: {
-        display: "flex",
-        gap: 12,
-        alignItems: "center",
-        padding: "13px 18px",
-        borderBottom: i < ME.badges.length - 1 ? `1px solid ${P.border}` : "none"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 28,
-        height: 28,
-        borderRadius: "50%",
-        background: P.green + "22",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 14
-      }
-    }, "\u2713"), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 14,
-        fontWeight: 500,
-        color: P.text
-      }
-    }, b), /*#__PURE__*/React.createElement("span", {
-      style: {
-        marginLeft: "auto",
-        fontSize: 11,
-        color: P.green,
-        fontWeight: 600
-      }
-    }, "Verified")))), /*#__PURE__*/React.createElement(Card, null, [{
-      label: "Service area settings",
-      icon: "📍"
-    }, {
-      label: "Notification preferences",
-      icon: "🔔"
-    }, {
-      label: "Tax documents (1099)",
-      icon: "📋"
-    }, {
-      label: "Support",
-      icon: "💬"
-    }, {
-      label: "Sign out",
-      icon: "→"
-    }].map(({
-      label,
-      icon
-    }, i, arr) => /*#__PURE__*/React.createElement("button", {
-      key: label,
-      style: {
-        width: "100%",
-        background: "transparent",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: font,
-        padding: "15px 18px",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : "none",
-        transition: "background 0.12s",
-        textAlign: "left"
-      },
-      onMouseEnter: e => e.currentTarget.style.background = P.lift,
-      onMouseLeave: e => e.currentTarget.style.background = "transparent"
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 18,
-        width: 24,
-        textAlign: "center"
-      }
-    }, icon), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 14,
-        fontWeight: 500,
-        color: label === "Sign out" ? P.red : P.text
-      }
-    }, label), /*#__PURE__*/React.createElement("svg", {
-      style: {
-        marginLeft: "auto"
-      },
-      width: "14",
-      height: "14",
-      viewBox: "0 0 16 16",
-      fill: "none"
-    }, /*#__PURE__*/React.createElement("path", {
-      d: "M6 3l5 5-5 5",
-      stroke: P.muted,
-      strokeWidth: "1.5",
-      strokeLinecap: "round",
-      strokeLinejoin: "round"
-    }))))))
-  };
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      minHeight: "100vh",
-      background: P.bg,
-      fontFamily: font,
-      color: P.text,
-      display: "flex",
-      flexDirection: "column"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "sticky",
-      top: 0,
-      zIndex: 40,
-      background: P.bg + "F5",
-      backdropFilter: "blur(20px)",
-      borderBottom: `1px solid ${P.border}`,
-      height: 56,
-      display: "flex",
-      alignItems: "center",
-      padding: "0 20px",
-      justifyContent: "space-between",
-      maxWidth: 520,
-      margin: "0 auto",
-      width: "100%"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 10
-    }
-  }, /*#__PURE__*/React.createElement(ProPhoto, {
-    size: 32
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 800,
-      color: P.text,
-      letterSpacing: -0.3
-    }
-  }, ME.name.split(" ")[0]), /*#__PURE__*/React.createElement(StatusBadge, {
-    status: status
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      fontWeight: 700,
-      color: P.text,
-      letterSpacing: -0.3
-    }
-  }, "Bailiwick", /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: P.red
-    }
-  }, "QuikFix"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 9,
-      color: P.muted,
-      fontWeight: 600,
-      display: "block",
-      textAlign: "right",
-      letterSpacing: 1
-    }
-  }, "PRO"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      maxWidth: 480,
-      margin: "0 auto",
-      width: "100%",
-      padding: "16px 20px 100px",
-      overflowY: "auto"
-    }
-  }, TAB_SCREENS[tab]), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      zIndex: 30,
-      background: P.surf + "FA",
-      backdropFilter: "blur(16px)",
-      borderTop: `1px solid ${P.border}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: 520,
-      margin: "0 auto",
-      display: "flex"
-    }
-  }, [{
-    id: "home",
-    label: "Home",
-    icon: /*#__PURE__*/React.createElement("svg", {
-      width: "20",
-      height: "20",
-      viewBox: "0 0 20 20",
-      fill: "none"
-    }, /*#__PURE__*/React.createElement("path", {
-      d: "M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z",
-      stroke: "currentColor",
-      strokeWidth: "1.4",
-      strokeLinejoin: "round"
-    }))
-  }, {
-    id: "account",
-    label: "Account",
-    icon: /*#__PURE__*/React.createElement("svg", {
-      width: "20",
-      height: "20",
-      viewBox: "0 0 20 20",
-      fill: "none"
-    }, /*#__PURE__*/React.createElement("circle", {
-      cx: "10",
-      cy: "7",
-      r: "3.5",
-      stroke: "currentColor",
-      strokeWidth: "1.4"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6",
-      stroke: "currentColor",
-      strokeWidth: "1.4",
-      strokeLinecap: "round"
-    }))
-  }].map(t => /*#__PURE__*/React.createElement("button", {
-    key: t.id,
-    onClick: () => setTab(t.id),
-    style: {
-      flex: 1,
-      padding: "10px 0 18px",
-      background: "transparent",
-      border: "none",
-      cursor: "pointer",
-      fontFamily: font,
-      borderTop: `2px solid ${tab === t.id ? P.green : "transparent"}`,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: 3,
-      transition: "all 0.15s"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: tab === t.id ? P.green : P.muted
-    }
-  }, t.icon), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 9,
-      fontWeight: 700,
-      letterSpacing: 1,
-      textTransform: "uppercase",
-      color: tab === t.id ? P.green : P.muted
-    }
-  }, t.label))))));
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCREEN: JOB COMPLETE
-═══════════════════════════════════════════════════════════ */
-function JobCompleteScreen({
-  onDone
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      minHeight: "100vh",
-      background: P.bg,
-      fontFamily: font,
-      color: P.text,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "40px 20px",
-      textAlign: "center",
-      animation: "up 0.4s ease"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 88,
-      height: 88,
-      borderRadius: "50%",
-      background: P.green + "22",
-      border: `2px solid ${P.green}`,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: 24,
-      fontSize: 44
-    }
-  }, "\u2713"), /*#__PURE__*/React.createElement("h2", {
-    style: {
-      fontSize: 32,
-      fontWeight: 900,
-      color: P.green,
-      letterSpacing: -1,
-      margin: "0 0 10px"
-    }
-  }, "Job Complete"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 16,
-      color: P.sub,
-      marginBottom: 6,
-      lineHeight: 1.6
-    }
-  }, "Payment of ", /*#__PURE__*/React.createElement("strong", {
-    style: {
-      color: P.text
-    }
-  }, "$", ACTIVE_JOB.total), " is being processed"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 13,
-      color: P.muted,
-      marginBottom: 36
-    }
-  }, "Direct deposit arrives within 24 hours"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 18,
-      padding: "20px",
-      width: "100%",
-      maxWidth: 360,
-      marginBottom: 28
-    }
-  }, [["Job", "Garbage disposal reset"], ["Flat rate", "$65.00"], ["Platform fee (15%)", "−$9.75"], ["Booking fee cut", "$0"], ["Your earnings", "$55.25"], ["Tip", "$5.00 (from customer)"], ["Total payout", "$60.25"]].map(([label, value], i, arr) => /*#__PURE__*/React.createElement("div", {
-    key: label,
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "9px 0",
-      borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : "none"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: i === arr.length - 1 ? P.text : P.sub
-    }
-  }, label), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      fontWeight: i === arr.length - 1 ? 800 : 600,
-      color: i === arr.length - 1 ? P.green : P.text
-    }
-  }, value)))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: "100%",
-      maxWidth: 360
-    }
-  }, /*#__PURE__*/React.createElement(BigBtn, {
-    label: "Back to Dashboard",
-    color: P.green,
-    onClick: onDone
-  })));
-}
-
-/* ═══════════════════════════════════════════════════════════
-   ROOT
-═══════════════════════════════════════════════════════════ */
-function ProApp() {
-  const [screen, setScreen] = useState("onboarding"); // onboarding | dashboard | incoming | active | complete
-
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: P.bg,
-      minHeight: "100vh"
-    }
-  }, screen === "onboarding" && /*#__PURE__*/React.createElement(OnboardingScreen, {
-    onDone: () => setScreen("dashboard")
-  }), screen === "dashboard" && /*#__PURE__*/React.createElement(DashboardScreen, {
-    onIncomingJob: () => setScreen("incoming"),
-    onStatusChange: s => {
-      if (s === "offline") setScreen("dashboard");
-    }
-  }), screen === "incoming" && /*#__PURE__*/React.createElement(IncomingJobScreen, {
-    onAccept: () => setScreen("active"),
-    onDecline: () => setScreen("dashboard")
-  }), screen === "active" && /*#__PURE__*/React.createElement(ActiveJobScreen, {
-    onComplete: () => setScreen("complete")
-  }), screen === "complete" && /*#__PURE__*/React.createElement(JobCompleteScreen, {
-    onDone: () => setScreen("dashboard")
-  }), /*#__PURE__*/React.createElement("style", null, `
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap');
-        @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes btnPulse{0%,100%{box-shadow:0 8px 32px #22C55E55}50%{box-shadow:0 8px 56px #22C55E88}}
-        @keyframes ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.8);opacity:0.3}}
-        *{box-sizing:border-box;margin:0;padding:0;}
-        ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2E2E2E;border-radius:2px;}
-        input::placeholder{color:#5A5A5A;}
-      `));
-}
-
-    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ProApp));
   </script>
 <div id="qf-nav" style="position:fixed;bottom:16px;right:16px;z-index:99999;display:flex;gap:8px;font-family:monospace;font-size:11px;">
   <a href="/" style="background:#1A1A1A;color:#00FF88;border:1px solid #333;padding:5px 10px;border-radius:6px;text-decoration:none;">Customer</a>
