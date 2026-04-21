@@ -52,6 +52,390 @@ const P = {
 };
 
 /* ── Mock data ── */
+/* ═══════════════════════════════════════════════════════════
+   MGE (METRIC GOVERNANCE ENGINE) — quikfix_v1 · Licensed IP
+   FohBoh × BailiwickQuikFix Joint Ownership
+   
+   Deterministic certification layer between Claude AI and dispatch.
+   · 24 ontology entities (quikfix_v1)
+   · 28 governance rules (7 blocking + 13 pricing + 8 dispatch)
+   · 6-component Contractor Trust Score (4 blocking + 2 non-blocking)
+   
+   Ported from mge/demo/mge-demo.js. DO NOT MODIFY without updating
+   the canonical artifacts in the mge/ directory and bumping version.
+═══════════════════════════════════════════════════════════ */
+const MGE = {
+  version: "quikfix_v1",
+  release: "1.0.0",
+  ontology_entities: 24,
+  rules_total: 28,
+  rules_blocking: 7,
+  rules_pricing: 13,
+  rules_dispatch: 8,
+  trust_components: 6,
+  components: [
+    { id: "C1", name: "Identity Verification", source: "Persona",    weight: 0.20, blocking: true },
+    { id: "C2", name: "Background Check",       source: "Checkr",     weight: 0.20, blocking: true },
+    { id: "C3", name: "Insurance / COI",        source: "Upload",     weight: 0.20, blocking: true },
+    { id: "C4", name: "License",                source: "State Board",weight: 0.15, blocking: true },
+    { id: "C5", name: "Performance History",    source: "Platform",   weight: 0.15, blocking: false },
+    { id: "C6", name: "Customer Rating",        source: "Platform",   weight: 0.10, blocking: false }
+  ],
+  blocking_rule_defs: [
+    { id: "R-QF-001", name: "Expired Certificate of Insurance", result: "Dispatch blocked, offline" },
+    { id: "R-QF-002", name: "Identity Verification Incomplete",  result: "Approval blocked" },
+    { id: "R-QF-003", name: "Background Check Stale (>72h)",     result: "Dispatch blocked" },
+    { id: "R-QF-004", name: "AI Confidence Below 0.75",          result: "QuikFix ineligible — manual review" },
+    { id: "R-QF-005", name: "Location Outside Service Zone",     result: "Cannot be priced or dispatched" },
+    { id: "R-QF-006", name: "Hazard Keyword in Transcript",      result: "Safety escalation" },
+    { id: "R-QF-007", name: "Pro Location Stale (>5min)",        result: "ETA certification blocked" }
+  ],
+  dispatch_tiers: {
+    auto:    { min: 85, label: "Auto-dispatch eligible" },
+    review:  { min: 70, max: 84, label: "Manual review required" },
+    blocked: { max: 69, label: "Dispatch blocked" },
+    offline: { score: 0, label: "Contractor set offline" }
+  }
+};
+
+/* Compute Trust Score from vetting record — port of computeTrustScore() in mge-demo.js */
+function mgeComputeTrustScore(vetting) {
+  const components = {};
+  const iv    = vetting.identity_verification || {};
+  const bc    = vetting.background_check || {};
+  const coi   = vetting.coi || {};
+  const lic   = vetting.license || {};
+  const perf  = vetting.performance || {};
+  const rat   = vetting.customer_rating || {};
+  
+  components.C1 = iv.status === "confirmed" ? 100 : 0;
+  
+  if (bc.status === "clear") components.C2 = 100;
+  else if (bc.status === "pending") components.C2 = (bc.hours_since_request || 0) > 72 ? 0 : 50;
+  else components.C2 = 0;
+  
+  if (coi.status === "expired" || coi.status === "pending") components.C3 = 0;
+  else if ((coi.days_until_expiry || 999) <= 30) components.C3 = 70;
+  else components.C3 = 100;
+  
+  if (lic.status === "not_required" || lic.status === "valid") components.C4 = 100;
+  else components.C4 = 0;
+  
+  if ((perf.total_jobs || 0) < 3) components.C5 = 50;
+  else {
+    const onTime = perf.jobs_completed_on_time / perf.total_jobs;
+    const bonus = (perf.callback_rate || 0) < 0.05 ? 20 : 0;
+    components.C5 = Math.round((onTime * 80 + bonus) * 10) / 10;
+  }
+  
+  if ((rat.total_ratings || 0) < 3) components.C6 = 50;
+  else components.C6 = Math.round((rat.average_rating / 5.0) * 100 * 10) / 10;
+  
+  const blockingReasons = [];
+  if (components.C1 === 0) blockingReasons.push("Identity not verified");
+  if (components.C2 === 0) blockingReasons.push(bc.status === "flagged" ? "Background check flagged" : "Background check pending >72h");
+  if (components.C3 === 0) blockingReasons.push(coi.status === "expired" ? "COI expired" : "COI pending");
+  if (components.C4 === 0) blockingReasons.push("License expired or suspended");
+  const anyBlocked = blockingReasons.length > 0;
+  
+  const warnings = [];
+  if (components.C3 === 70) warnings.push("COI expires in " + (coi.days_until_expiry || "?") + " days");
+  if (components.C2 === 50) warnings.push("Background check pending (" + (bc.hours_since_request || 0) + "h)");
+  
+  let score;
+  if (anyBlocked) score = 0;
+  else score = Math.round((
+    components.C1 * 0.20 + components.C2 * 0.20 + components.C3 * 0.20 +
+    components.C4 * 0.15 + components.C5 * 0.15 + components.C6 * 0.10
+  ) * 10) / 10;
+  
+  let tier;
+  if (score === 0) tier = "blocked";
+  else if (score >= 85) tier = "auto";
+  else if (score >= 70) tier = "review";
+  else tier = "blocked";
+  
+  return { score, components, anyBlocked, blockingReasons, warnings, dispatchTier: tier };
+}
+
+/* Rule evaluator — port of evaluateRules() */
+function mgeEvaluateRules(scenario) {
+  const fired = [];
+  if (scenario.vetting) {
+    if (scenario.vetting.coi && scenario.vetting.coi.status === "expired") fired.push("R-QF-001");
+    if (scenario.vetting.identity_verification && scenario.vetting.identity_verification.status !== "confirmed") fired.push("R-QF-002");
+    if (scenario.vetting.background_check && scenario.vetting.background_check.status === "pending" && (scenario.vetting.background_check.hours_since_request || 0) > 72) fired.push("R-QF-003");
+    if (scenario.vetting.background_check && scenario.vetting.background_check.status === "flagged") fired.push("R-QF-027");
+  }
+  if (scenario.job) {
+    if ((scenario.job.certified_confidence != null ? scenario.job.certified_confidence : 1) < 0.75) fired.push("R-QF-004");
+  }
+  if (scenario.location && scenario.location.service_zone === false) fired.push("R-QF-005");
+  if (scenario.service_request && scenario.service_request.hazard_detected === true) fired.push("R-QF-006");
+  if (scenario.contractor && scenario.contractor.location_age_minutes > 5) fired.push("R-QF-007");
+  if (scenario.pricing) {
+    if ((scenario.pricing.quoted_flat_rate_usd || 0) > (scenario.pricing.rate_card_flat_rate_usd || Infinity)) fired.push("R-QF-008");
+  }
+  if (scenario.customer && scenario.customer.authorized_limit && scenario.job && scenario.job.certified_flat_rate_usd > scenario.customer.authorized_limit) fired.push("R-QF-014");
+  if (scenario.job && scenario.job.required_specialty && scenario.contractor && scenario.contractor.specialties) {
+    if (!scenario.contractor.specialties.includes(scenario.job.required_specialty)) fired.push("R-QF-021");
+  }
+  if (scenario.vetting) {
+    const ts = mgeComputeTrustScore(scenario.vetting);
+    if (ts.score >= 70 && ts.score < 85) fired.push("R-QF-026");
+  }
+  return fired;
+}
+
+/* Run one test scenario and compare against expected_results */
+function mgeRunScenario(scenario) {
+  const rulesFired = mgeEvaluateRules(scenario);
+  let trust = null;
+  if (scenario.vetting) trust = mgeComputeTrustScore(scenario.vetting);
+  const exp = scenario.expected_results;
+  const checks = [];
+  
+  if (exp.trust_score !== undefined && trust) {
+    const match = Math.abs(trust.score - exp.trust_score) < 1.0;
+    checks.push({ check: "Trust Score", expected: exp.trust_score, actual: trust.score, pass: match });
+  }
+  if (exp.dispatch_tier) {
+    const actual = trust && trust.score === 0 ? "blocked" :
+      rulesFired.includes("R-QF-005") || rulesFired.includes("R-QF-006") ? "escalate" :
+      rulesFired.includes("R-QF-004") || rulesFired.includes("R-QF-014") ? "review" :
+      (trust ? trust.dispatchTier : "auto");
+    checks.push({ check: "Dispatch Tier", expected: exp.dispatch_tier, actual: actual, pass: actual === exp.dispatch_tier });
+  }
+  if (exp.rules_fired) {
+    const actualSet = new Set(rulesFired);
+    const match = exp.rules_fired.length === rulesFired.length && exp.rules_fired.every(function(r){return actualSet.has(r);});
+    checks.push({ check: "Rules Fired", expected: exp.rules_fired, actual: rulesFired, pass: match });
+  }
+  if (exp.blocking_triggered !== undefined && trust) {
+    checks.push({ check: "Blocking Triggered", expected: exp.blocking_triggered, actual: trust.anyBlocked, pass: trust.anyBlocked === exp.blocking_triggered });
+  }
+  
+  return {
+    id: scenario.id,
+    name: scenario.name,
+    description: scenario.description,
+    pass: checks.every(function(c){return c.pass;}),
+    checks: checks,
+    trust_score: trust ? trust.score : null,
+    trust_components: trust ? trust.components : null,
+    rules_fired: rulesFired
+  };
+}
+
+/* Run the full 15-scenario suite */
+function mgeRunAllScenarios() {
+  const results = MGE_TEST_SCENARIOS.map(mgeRunScenario);
+  const passed = results.filter(function(r){return r.pass;}).length;
+  return {
+    summary: {
+      total: results.length,
+      passed: passed,
+      failed: results.length - passed,
+      status: passed === results.length ? "✅ ALL TESTS PASSED" : "❌ " + (results.length - passed) + " TESTS FAILED",
+      mge_version: MGE.version,
+      ontology_entities: MGE.ontology_entities,
+      rules_loaded: MGE.rules_total,
+      trust_components: MGE.trust_components,
+      timestamp: new Date().toISOString()
+    },
+    results: results
+  };
+}
+
+/* Certify a job — produces an immutable Certified Job Record */
+function mgeCertifyJob(job, pro) {
+  const now = new Date().toISOString();
+  const specialty = (job && job.type) ? job.type : null;
+  const fixText = ((job && job.fix) || "").toLowerCase();
+  const hazard = fixText.indexOf("gas") !== -1 || fixText.indexOf("spark") !== -1 || fixText.indexOf("fire") !== -1 || fixText.indexOf("smoke") !== -1 || fixText.indexOf("burn") !== -1;
+  const scenario = {
+    job: {
+      job_id: job.id,
+      certified_job_type: job.type,
+      certified_flat_rate_usd: job.rate,
+      certified_confidence: (job.confidence || 0) / 100,
+      required_specialty: specialty
+    },
+    location: { service_zone: true },
+    service_request: { hazard_detected: hazard },
+    contractor: pro ? {
+      pro_id: pro.id,
+      specialties: pro.specialties || (pro.trade ? [pro.trade.toLowerCase().replace(" pro", "").replace("handyman", "drywall")] : []),
+      trust_score: pro.trustScore,
+      location_age_minutes: pro.locationAgeMin || 1
+    } : null,
+    vetting: pro ? pro.vetting : null
+  };
+  const rulesFired = mgeEvaluateRules(scenario);
+  const trust = pro && pro.vetting ? mgeComputeTrustScore(pro.vetting) : null;
+  
+  const blockingFired = rulesFired.filter(function(r){
+    return ["R-QF-001","R-QF-002","R-QF-003","R-QF-004","R-QF-005","R-QF-006","R-QF-007","R-QF-027","R-QF-028"].indexOf(r) !== -1;
+  });
+  const priceCertified = rulesFired.indexOf("R-QF-008") === -1 && rulesFired.indexOf("R-QF-010") === -1 && rulesFired.indexOf("R-QF-012") === -1;
+  
+  let tier;
+  if (rulesFired.indexOf("R-QF-006") !== -1 || rulesFired.indexOf("R-QF-005") !== -1) tier = "escalate";
+  else if (blockingFired.length > 0) tier = "blocked";
+  else if (rulesFired.indexOf("R-QF-004") !== -1 || rulesFired.indexOf("R-QF-014") !== -1 || rulesFired.indexOf("R-QF-026") !== -1) tier = "review";
+  else if (trust && trust.score === 0) tier = "blocked";
+  else if (trust && trust.score >= 85) tier = "auto";
+  else if (trust && trust.score >= 70) tier = "review";
+  else tier = job.tier || "auto";
+  
+  const quikfixEligible = blockingFired.length === 0 && priceCertified && (job.confidence || 0) >= 75 && tier !== "blocked" && tier !== "escalate";
+  
+  return {
+    job_id: job.id,
+    mge_version: MGE.version,
+    certified_at: now,
+    certified_job_type: job.type,
+    certified_flat_rate_usd: job.rate,
+    certified_confidence: (job.confidence || 0) / 100,
+    certified_quikfix_eligible: quikfixEligible,
+    dispatch_tier: tier,
+    blocking_conditions_triggered: blockingFired,
+    rules_fired: rulesFired,
+    price_certified: priceCertified,
+    contractor_trust_score: trust ? trust.score : null,
+    contractor_blocking_reasons: trust ? trust.blockingReasons : [],
+    immutable: true
+  };
+}
+
+/* Inline subset of the 15 test scenarios — mirrors mge/tests/test_scenarios.json */
+const MGE_TEST_SCENARIOS = [
+  { id: "TEST-001", name: "Perfect Contractor — Auto-Dispatch", description: "All vetting complete, all clear. Should produce Trust Score ~99 and auto-dispatch.",
+    vetting: {
+      identity_verification: { status: "confirmed" },
+      background_check: { status: "clear" },
+      coi: { status: "current", days_until_expiry: 344 },
+      license: { status: "valid", license_type: "plumber" },
+      performance: { total_jobs: 45, jobs_completed_on_time: 43, callback_rate: 0.02 },
+      customer_rating: { average_rating: 4.8, total_ratings: 38 }
+    },
+    expected_results: { trust_score: 98.8, blocking_triggered: false, dispatch_tier: "auto", rules_fired: [] }
+  },
+  { id: "TEST-002", name: "Expired COI — Dispatch Blocked", description: "COI expired yesterday. R-QF-001 fires. Trust Score = 0.",
+    vetting: {
+      identity_verification: { status: "confirmed" },
+      background_check: { status: "clear" },
+      coi: { status: "expired", days_until_expiry: -1 },
+      license: { status: "valid", license_type: "electrician" },
+      performance: { total_jobs: 30, jobs_completed_on_time: 28, callback_rate: 0.03 },
+      customer_rating: { average_rating: 4.5, total_ratings: 25 }
+    },
+    expected_results: { trust_score: 0, blocking_triggered: true, dispatch_tier: "blocked", rules_fired: ["R-QF-001"] }
+  },
+  { id: "TEST-003", name: "Identity Not Verified — Approval Blocked", description: "Persona webhook never confirmed. R-QF-002 fires. Trust Score = 0.",
+    vetting: {
+      identity_verification: { status: "pending" },
+      background_check: { status: "clear" },
+      coi: { status: "current", days_until_expiry: 420 },
+      license: { status: "not_required" },
+      performance: { total_jobs: 12, jobs_completed_on_time: 11, callback_rate: 0.04 },
+      customer_rating: { average_rating: 4.2, total_ratings: 10 }
+    },
+    expected_results: { trust_score: 0, blocking_triggered: true, dispatch_tier: "blocked", rules_fired: ["R-QF-002"] }
+  },
+  { id: "TEST-004", name: "Background Check Stale (>72h) — Blocked", description: "Checkr result pending for 96h. R-QF-003 fires. Trust Score = 0.",
+    vetting: {
+      identity_verification: { status: "confirmed" },
+      background_check: { status: "pending", hours_since_request: 96 },
+      coi: { status: "current", days_until_expiry: 255 },
+      license: { status: "not_required" },
+      performance: { total_jobs: 8, jobs_completed_on_time: 7, callback_rate: 0.06 },
+      customer_rating: { average_rating: 4.0, total_ratings: 6 }
+    },
+    expected_results: { trust_score: 0, blocking_triggered: true, dispatch_tier: "blocked", rules_fired: ["R-QF-003"] }
+  },
+  { id: "TEST-005", name: "Background Pending (<72h) — Reduced but Not Blocked", description: "Checkr pending for 48h. C2=50. Trust Score reduced but nonzero.",
+    vetting: {
+      identity_verification: { status: "confirmed" },
+      background_check: { status: "pending", hours_since_request: 48 },
+      coi: { status: "current", days_until_expiry: 467 },
+      license: { status: "valid", license_type: "plumber" },
+      performance: { total_jobs: 50, jobs_completed_on_time: 48, callback_rate: 0.01 },
+      customer_rating: { average_rating: 4.9, total_ratings: 45 }
+    },
+    expected_results: { trust_score: 89.8, blocking_triggered: false, dispatch_tier: "auto", rules_fired: [] }
+  },
+  { id: "TEST-006", name: "Review Zone (Score 70–84)", description: "COI expiring soon (C3=70) + new contractor (C5/C6 defaults). R-QF-026 fires.",
+    vetting: {
+      identity_verification: { status: "confirmed" },
+      background_check: { status: "clear" },
+      coi: { status: "current", days_until_expiry: 19 },
+      license: { status: "valid", license_type: "hvac_tech" },
+      performance: { total_jobs: 2, jobs_completed_on_time: 2, callback_rate: 0 },
+      customer_rating: { average_rating: 4.0, total_ratings: 2 }
+    },
+    expected_results: { trust_score: 79, blocking_triggered: false, dispatch_tier: "review", rules_fired: ["R-QF-026"] }
+  },
+  { id: "TEST-007", name: "AI Confidence Below Threshold — QuikFix Blocked", description: "Claude confidence 0.62. R-QF-004 fires.",
+    job: { job_id: "BWK-T007A", certified_confidence: 0.62 },
+    location: { service_zone: true },
+    service_request: { hazard_detected: false },
+    expected_results: { dispatch_tier: "review", rules_fired: ["R-QF-004"] }
+  },
+  { id: "TEST-008", name: "Outside Service Zone — Dispatch Blocked", description: "Customer ZIP not in allowlist. R-QF-005 fires.",
+    job: { job_id: "BWK-T008B", certified_confidence: 0.92 },
+    location: { service_zone: false },
+    expected_results: { dispatch_tier: "escalate", rules_fired: ["R-QF-005"] }
+  },
+  { id: "TEST-009", name: "Hazard Keyword — Safety Escalation", description: "Transcript contains hazard keyword. R-QF-006 fires.",
+    job: { job_id: "BWK-T009C", certified_confidence: 0.95 },
+    service_request: { hazard_detected: true },
+    location: { service_zone: true },
+    expected_results: { dispatch_tier: "escalate", rules_fired: ["R-QF-006"] }
+  },
+  { id: "TEST-010", name: "Pro Location Stale — ETA Blocked", description: "GPS timestamp 8min old. R-QF-007 fires.",
+    contractor: { pro_id: "PRO-TEST-010", specialties: ["plumbing"], location_age_minutes: 8 },
+    expected_results: { rules_fired: ["R-QF-007"] }
+  },
+  { id: "TEST-011", name: "Flat Rate Exceeds Rate Card — Blocked", description: "Quoted $350 vs rate card max $275. R-QF-008 fires.",
+    job: { job_id: "BWK-T011D", certified_confidence: 0.91 },
+    pricing: { quoted_flat_rate_usd: 350, rate_card_flat_rate_usd: 275 },
+    expected_results: { rules_fired: ["R-QF-008"] }
+  },
+  { id: "TEST-012", name: "Wrong Specialty — Skipped", description: "Job requires electrician, contractor is plumber. R-QF-021 fires.",
+    job: { job_id: "BWK-T012E", certified_confidence: 0.88, required_specialty: "electrical" },
+    contractor: { pro_id: "PRO-TEST-012", specialties: ["plumbing"], trust_score: 95 },
+    expected_results: { rules_fired: ["R-QF-021"] }
+  },
+  { id: "TEST-013", name: "Multiple Blocks — Both Reported", description: "COI expired AND background flagged. Both rules fire. Trust = 0.",
+    vetting: {
+      identity_verification: { status: "confirmed" },
+      background_check: { status: "flagged" },
+      coi: { status: "expired" },
+      license: { status: "not_required" },
+      performance: { total_jobs: 20, jobs_completed_on_time: 20, callback_rate: 0 },
+      customer_rating: { average_rating: 5.0, total_ratings: 20 }
+    },
+    expected_results: { trust_score: 0, blocking_triggered: true, dispatch_tier: "blocked", rules_fired: ["R-QF-001","R-QF-027"] }
+  },
+  { id: "TEST-014", name: "Perfect Job — Full Certification", description: "Qualified contractor, in-zone, in-rate-card, high confidence.",
+    job: { job_id: "BWK-T014F", certified_confidence: 0.94, certified_flat_rate_usd: 125 },
+    contractor: { pro_id: "PRO-TEST-001", specialties: ["plumbing"], trust_score: 98.8, location_age_minutes: 1 },
+    location: { service_zone: true },
+    service_request: { hazard_detected: false },
+    pricing: { quoted_flat_rate_usd: 125, rate_card_flat_rate_usd: 200 },
+    expected_results: { rules_fired: [] }
+  },
+  { id: "TEST-015", name: "Authorized Limit Exceeded — Manual Approval", description: "$310 on commercial account with $250 limit. R-QF-014 fires.",
+    job: { job_id: "BWK-T015G", certified_confidence: 0.88, certified_flat_rate_usd: 310 },
+    customer: { account_type: "commercial", authorized_limit: 250 },
+    pricing: { quoted_flat_rate_usd: 310, rate_card_flat_rate_usd: 400 },
+    expected_results: { dispatch_tier: "review", rules_fired: ["R-QF-014"] }
+  }
+];
+
+
+/* ── Mock data (continued) ── */
 const ME = {
   id: 1,
   name: "Maria Santos",
@@ -71,7 +455,17 @@ const ME = {
     pending: 65
   },
   badges: ["Background Check", "Licensed", "Top Rated", "$1M Insured"],
-  bankLast4: "4821"
+  bankLast4: "4821",
+  specialties: ["plumbing"],
+  /* Vetting record — read by the MGE on every render to compute a live 6-component Trust Score */
+  vetting: {
+    identity_verification: { status: "confirmed", verified_at: "2025-11-04T14:22:00Z", provider: "Persona" },
+    background_check: { status: "clear", completed_at: "2025-11-06T09:00:00Z", provider: "Checkr" },
+    coi: { status: "current", days_until_expiry: 47, expiration_date: "2026-06-07", carrier: "Hiscox", policy_num: "HNOA-********21" },
+    license: { status: "valid", license_type: "Master Plumber", license_num: "TX-MP-********19", expiration_date: "2027-03-15" },
+    performance: { total_jobs: 312, jobs_completed_on_time: 299, callback_rate: 0.02 },
+    customer_rating: { average_rating: 4.93, total_ratings: 280 }
+  }
 };
 const INCOMING_JOB = {
   id: "BWK-9991G",
@@ -2070,29 +2464,136 @@ function DashboardScreen({
         gap: 8,
         marginBottom: 12
       }
-    }, [["Rating", `★ ${ME.rating}`, P.amber], ["Trust", `${ME.trustScore}/100`, P.green], ["Jobs", ME.jobs, P.blue]].map(([label, value, color]) => /*#__PURE__*/React.createElement("div", {
-      key: label,
-      style: {
-        background: P.card,
-        border: `1px solid ${P.border}`,
-        borderRadius: 14,
-        padding: "14px 12px",
-        textAlign: "center"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 18,
-        fontWeight: 800,
-        color,
-        letterSpacing: -0.3
-      }
-    }, value), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 10,
-        color: P.muted,
-        marginTop: 4
-      }
-    }, label)))), /*#__PURE__*/React.createElement("div", {
+    },
+      (function() {
+        const mge = mgeComputeTrustScore(ME.vetting);
+        const trustColor = mge.anyBlocked ? P.red : mge.score >= 85 ? P.green : mge.score >= 70 ? P.amber : P.red;
+        return [
+          ["Rating", "\u2605 " + ME.rating, P.amber],
+          ["Trust", mge.score + "/100", trustColor],
+          ["Jobs", ME.jobs, P.blue]
+        ].map(function(row) {
+          const label = row[0], value = row[1], color = row[2];
+          return /*#__PURE__*/React.createElement("div", {
+            key: label,
+            style: {
+              background: P.card,
+              border: "1px solid " + (label === "Trust" ? color + "66" : P.border),
+              borderRadius: 14,
+              padding: "14px 12px",
+              textAlign: "center"
+            }
+          },
+            /*#__PURE__*/React.createElement("div", {
+              style: {
+                fontSize: 18,
+                fontWeight: 800,
+                color: color,
+                letterSpacing: -0.3
+              }
+            }, value),
+            /*#__PURE__*/React.createElement("div", {
+              style: {
+                fontSize: 10,
+                color: P.muted,
+                marginTop: 4
+              }
+            }, label)
+          );
+        });
+      })()
+    ),
+    /* ── MGE Trust Firewall panel (always visible in the pro app) ── */
+    (function() {
+      const mge = mgeComputeTrustScore(ME.vetting);
+      return /*#__PURE__*/React.createElement("div", {
+        style: {
+          background: P.card,
+          border: "1px solid " + (mge.anyBlocked ? P.red + "66" : mge.warnings.length > 0 ? P.amber + "44" : P.green + "33"),
+          borderRadius: 14,
+          padding: "14px 16px",
+          marginBottom: 12
+        }
+      },
+        /* Header */
+        /*#__PURE__*/React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 6 } },
+          /*#__PURE__*/React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+            /*#__PURE__*/React.createElement("span", { style: { fontSize: 14 } }, "\ud83d\udee1\ufe0f"),
+            /*#__PURE__*/React.createElement("span", { style: { fontSize: 12, fontWeight: 800, color: P.text, letterSpacing: 0.3 } }, "MGE TRUST FIREWALL"),
+            /*#__PURE__*/React.createElement("span", { style: { fontSize: 9, fontWeight: 700, color: P.muted, fontFamily: "monospace", marginLeft: 2 } }, MGE.version)
+          ),
+          /*#__PURE__*/React.createElement("span", {
+            style: {
+              fontSize: 9, fontWeight: 800, letterSpacing: 0.5, padding: "3px 9px", borderRadius: 100,
+              background: mge.anyBlocked ? P.redBg : mge.warnings.length > 0 ? P.amberBg : P.greenBg,
+              color: mge.anyBlocked ? P.redL : mge.warnings.length > 0 ? P.amber : P.green,
+              border: "1px solid " + (mge.anyBlocked ? P.red : mge.warnings.length > 0 ? P.amber : P.green) + "55"
+            }
+          }, mge.anyBlocked ? "BLOCKED" : mge.warnings.length > 0 ? "WARNING" : "CERTIFIED")
+        ),
+        /* Component grid: C1-C6 */
+        /*#__PURE__*/React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 } },
+          MGE.components.map(function(cdef) {
+            const val = mge.components[cdef.id];
+            const isZero = val === 0;
+            const isReduced = val > 0 && val < 100;
+            const color = isZero ? P.red : isReduced ? P.amber : P.green;
+            const bg = isZero ? P.redBg : isReduced ? P.amberBg : P.greenBg;
+            return /*#__PURE__*/React.createElement("div", {
+              key: cdef.id,
+              style: { background: bg, border: "1px solid " + color + "44", borderRadius: 8, padding: "8px 10px" }
+            },
+              /*#__PURE__*/React.createElement("div", { style: { fontSize: 8, fontWeight: 800, color: P.muted, letterSpacing: 0.5, marginBottom: 3 } },
+                cdef.id, " \u00b7 ", Math.round(cdef.weight * 100), "%",
+                cdef.blocking && /*#__PURE__*/React.createElement("span", { style: { color: P.red, marginLeft: 3 } }, "\ud83d\udd12")
+              ),
+              /*#__PURE__*/React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 4 } },
+                /*#__PURE__*/React.createElement("span", { style: { fontSize: 16, fontWeight: 800, color: color, fontFamily: "monospace", lineHeight: 1 } }, val),
+                /*#__PURE__*/React.createElement("span", { style: { fontSize: 9, color: P.muted } }, "/100")
+              ),
+              /*#__PURE__*/React.createElement("div", { style: { fontSize: 9, color: P.sub, marginTop: 3, lineHeight: 1.2 } }, cdef.name)
+            );
+          })
+        ),
+        /* Active blocking banner */
+        mge.anyBlocked && /*#__PURE__*/React.createElement("div", {
+          style: { marginTop: 10, padding: "10px 12px", background: P.redBg, border: "1px solid " + P.red + "44", borderRadius: 8, display: "flex", alignItems: "flex-start", gap: 8 }
+        },
+          /*#__PURE__*/React.createElement("span", { style: { fontSize: 14, flexShrink: 0 } }, "\ud83d\uded1"),
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: P.redL, marginBottom: 2 } }, "BLOCKED BY MGE \u2014 you cannot receive jobs"),
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, color: P.redL, lineHeight: 1.5 } }, mge.blockingReasons.join(" \u00b7 ")),
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 10, color: P.muted, marginTop: 4 } }, "Resolve the blocking condition to restore dispatch eligibility.")
+          )
+        ),
+        /* Warning banner (non-blocking amber) */
+        !mge.anyBlocked && mge.warnings.length > 0 && /*#__PURE__*/React.createElement("div", {
+          style: { marginTop: 10, padding: "10px 12px", background: P.amberBg, border: "1px solid " + P.amber + "44", borderRadius: 8, display: "flex", alignItems: "flex-start", gap: 8 }
+        },
+          /*#__PURE__*/React.createElement("span", { style: { fontSize: 14, flexShrink: 0 } }, "\u26a0\ufe0f"),
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: P.amber, marginBottom: 2 } }, "WARNING \u2014 action recommended"),
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, color: P.amber, lineHeight: 1.5 } }, mge.warnings.join(" \u00b7 "))
+          )
+        ),
+        /* Healthy state footer */
+        !mge.anyBlocked && mge.warnings.length === 0 && /*#__PURE__*/React.createElement("div", {
+          style: { marginTop: 10, fontSize: 10, color: P.muted, textAlign: "center", fontFamily: "monospace" }
+        },
+          "All 4 blocking components green \u00b7 dispatch tier: ",
+          /*#__PURE__*/React.createElement("span", { style: { color: mge.dispatchTier === "auto" ? P.green : P.amber, fontWeight: 800 } }, mge.dispatchTier.toUpperCase())
+        ),
+        /* Footer formula */
+        /*#__PURE__*/React.createElement("div", {
+          style: { marginTop: 10, paddingTop: 10, borderTop: "1px solid " + P.border, fontSize: 9, color: P.muted, lineHeight: 1.5 }
+        },
+          "Trust Score = \u03a3 (component \u00d7 weight). ",
+          /*#__PURE__*/React.createElement("strong", { style: { color: P.sub } }, "\ud83d\udd12 = blocking"),
+          " \u2014 if any blocking component hits 0, entire score = 0. Source: ",
+          /*#__PURE__*/React.createElement("span", { style: { color: P.sub, fontFamily: "monospace" } }, "mge/kpis/contractor_trust_score.json")
+        )
+      );
+    })(), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         fontWeight: 700,

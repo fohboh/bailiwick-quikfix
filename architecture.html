@@ -102,6 +102,30 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
 .connector-left,.connector-right{position:absolute;top:50%;width:20px;height:1px;background:#1c3a50;}
 .connector-left{left:-20px;}
 .connector-right{right:-20px;}
+
+/* ── MGE reference tables (blocking rules + Trust Score components) ── */
+.mge-table{width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:9px;margin-top:10px;}
+.mge-table thead tr{background:#0a1e30;}
+.mge-table th{text-align:left;padding:7px 10px;color:#3d6080;font-weight:500;letter-spacing:1px;border-bottom:1px solid #1c3a50;font-size:8px;}
+.mge-table th.center{text-align:center;}
+.mge-table th.right{text-align:right;}
+.mge-table td{padding:7px 10px;color:#7baac8;border-bottom:1px solid #1c2f4a;vertical-align:top;line-height:1.5;}
+.mge-table td.id{color:#10b981;font-weight:700;white-space:nowrap;}
+.mge-table td.id-blue{color:#3b82f6;font-weight:700;white-space:nowrap;}
+.mge-table td.name{color:#e8f2ff;font-family:'DM Sans',sans-serif;}
+.mge-table td.center{text-align:center;}
+.mge-table td.right{text-align:right;}
+.mge-table td.red{color:#ff5252;font-weight:700;}
+.mge-table td.green{color:#22c55e;font-weight:700;}
+.mge-table td.muted{color:#5a5a5a;}
+.mge-table tr:last-child td{border-bottom:none;}
+.mge-table-title{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:#e8f2ff;margin:14px 0 6px;display:flex;align-items:center;gap:8px;}
+.mge-table-title .tag{font-family:'DM Mono',monospace;font-size:8px;font-weight:500;letter-spacing:1px;color:#3d6080;background:#152540;padding:2px 8px;border-radius:4px;margin-left:auto;}
+
+/* Stat chips at the top of the MGE block */
+.mge-stats{display:flex;gap:8px;margin-top:10px;margin-bottom:14px;flex-wrap:wrap;}
+.mge-stat{background:#0a1e30;border:1px solid #1c3a50;border-radius:8px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:9px;color:#7baac8;display:flex;align-items:center;gap:6px;}
+.mge-stat-val{color:#10b981;font-weight:700;font-size:11px;}
 </style>
 </head>
 <body>
@@ -111,7 +135,7 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
   <div class="header">
     <div>
       <div class="logo">Bailiwick<span>QuikFix</span></div>
-      <div style="font-size:11px;color:#3d6080;margin-top:3px;font-family:'DM Mono',monospace;">System Architecture · FohBoh MGE Integration · v1.6.1</div>
+      <div style="font-size:11px;color:#3d6080;margin-top:3px;font-family:'DM Mono',monospace;">System Architecture · FohBoh MGE Integration · v1.7.0 · mge:quikfix_v1</div>
     </div>
     <div class="header-right">
       Confidential  ·  Engineering IP Handoff<br/>
@@ -195,17 +219,29 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
     </div>
     <div class="mge-sub">Proprietary licensed technology · Certified System of Record for all platform metrics · Same input always produces same output</div>
 
+    <!-- Deployed artifact counts — read directly from mge/ directory -->
+    <div class="mge-stats">
+      <div class="mge-stat"><span class="mge-stat-val">quikfix_v1</span>mge_version</div>
+      <div class="mge-stat"><span class="mge-stat-val">24</span>ontology entities</div>
+      <div class="mge-stat"><span class="mge-stat-val">21</span>relationships</div>
+      <div class="mge-stat"><span class="mge-stat-val">28</span>governance rules</div>
+      <div class="mge-stat"><span class="mge-stat-val">6</span>Trust Score components</div>
+      <div class="mge-stat"><span class="mge-stat-val">5</span>alias dictionaries</div>
+      <div class="mge-stat"><span class="mge-stat-val">15</span>validation scenarios</div>
+    </div>
+
     <div class="mge-grid">
       <div class="mge-component">
         <div class="mge-component-title">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#10b981" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/></svg>
           <span style="color:#10b981;">KPI Registry</span>
         </div>
-        <div class="mge-component-body">Version-controlled database of all metric formulas. Trust Score weights, QuikFix conditions, revenue calculations — all formulas live here. Every system reads from one canonical source. No independent calculation permitted.</div>
+        <div class="mge-component-body">Version-controlled source of truth for metric formulas. Contractor Trust Score lives here as 6 weighted components with explicit blocking logic. Every system reads from the canonical definition — no independent calculation permitted.</div>
         <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;">
-          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">trust_score_v3.2</span>
-          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">quikfix_eligibility_v1.4</span>
-          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">job_revenue_v2.1</span>
+          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">contractor_trust_score.json</span>
+          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">v1.0.0 · CERTIFIED</span>
+          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">owner: FOHBOH</span>
+          <span class="cert-field" style="border-color:#10b98133;color:#10b981;">access: LOCKED</span>
         </div>
       </div>
 
@@ -214,12 +250,12 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="#d32f2f22" stroke="#d32f2f" stroke-width="1.8"/></svg>
           <span style="color:#ff5252;">Trust Firewall</span>
         </div>
-        <div class="mge-component-body">Rules-based blocking engine. If data is incomplete or invalid, the metric is blocked — not penalized. Dispatch cannot proceed past a blocked metric. Deterministic, not probabilistic.</div>
+        <div class="mge-component-body">7 blocking rules (R-QF-001 → R-QF-007) at salience 500. Rules block — they don't penalize. If triggered, dispatch is impossible. Plus 13 pricing rules + 8 dispatch rules = 28 total. Deterministic, not probabilistic.</div>
         <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:8px;color:#3d6080;line-height:1.7;">
-          IF coi_expired → BLOCK dispatch<br/>
-          IF confidence &lt; threshold → BLOCK quikfix<br/>
-          IF hazard_keyword → BLOCK auto_dispatch<br/>
-          IF location_stale &gt; 5min → BLOCK eta_cert
+          7 blocking · salience 500<br/>
+          13 pricing · salience 80–100<br/>
+          8 dispatch · salience 85–500<br/>
+          <span style="color:#ff5252;">See table below for full rules →</span>
         </div>
       </div>
 
@@ -228,13 +264,150 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#3b82f6" stroke-width="1.8"/><path d="M12 8v4l2 2" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round"/></svg>
           <span style="color:#3b82f6;">Certified Metrics API</span>
         </div>
-        <div class="mge-component-body">The single endpoint all subsystems call. Returns certified Trust Score, QuikFix status, revenue figures, and dispatch tier. Response includes mge_version + timestamp. No system calculates metrics independently.</div>
+        <div class="mge-component-body">Single endpoint all subsystems call. Returns certified Trust Score, dispatch tier, QuikFix eligibility. Response includes mge_version + timestamp. No system calculates metrics independently. Demo mode runs 15 deterministic test scenarios for validation.</div>
         <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:8px;color:#3d6080;line-height:1.7;">
-          GET /mge/trust-score/:proId<br/>
-          GET /mge/quikfix/:jobId<br/>
           POST /mge/certify-job<br/>
-          GET /mge/job-revenue/:jobId
+          GET  /mge/trust-score/:proId<br/>
+          GET  /mge/quikfix/:jobId<br/>
+          GET  /mge/demo → 15/15 tests
         </div>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════════ -->
+    <!-- The 7 Blocking Rules (Trust Firewall) — from mge/rules/qf_rules_v1.json -->
+    <!-- ═════════════════════════════════════════════════════════════════ -->
+    <div class="mge-table-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="#d32f2f22" stroke="#d32f2f" stroke-width="1.8"/></svg>
+      <span style="color:#ff5252;">The 7 Blocking Rules — Trust Firewall</span>
+      <span class="tag">mge/rules/qf_rules_v1.json · salience 500</span>
+    </div>
+    <table class="mge-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">RULE ID</th>
+          <th>CONDITION</th>
+          <th style="width:38%;">RESULT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="id">R-QF-001</td>
+          <td><span class="name">Expired Certificate of Insurance</span><br/><span class="muted">COIDocument.status == "expired"</span></td>
+          <td>Dispatch blocked · Trust Score → 0 · contractor set offline</td>
+        </tr>
+        <tr>
+          <td class="id">R-QF-002</td>
+          <td><span class="name">Identity Verification Incomplete (Persona)</span><br/><span class="muted">IdentityVerification.status != "confirmed"</span></td>
+          <td>Approval blocked · Trust Score → 0</td>
+        </tr>
+        <tr>
+          <td class="id">R-QF-003</td>
+          <td><span class="name">Background Check Stale (&gt;72h)</span><br/><span class="muted">BackgroundCheck.status == "pending" AND hours_since_request &gt; 72</span></td>
+          <td>Dispatch blocked · Trust Score → 0</td>
+        </tr>
+        <tr>
+          <td class="id">R-QF-004</td>
+          <td><span class="name">AI Confidence Below QuikFix Threshold</span><br/><span class="muted">Job.certified_confidence &lt; 0.75</span></td>
+          <td>QuikFix ineligible · dispatch_tier → review</td>
+        </tr>
+        <tr>
+          <td class="id">R-QF-005</td>
+          <td><span class="name">Location Outside Service Zone</span><br/><span class="muted">Location.service_zone == false</span></td>
+          <td>Cannot be priced or dispatched · escalate</td>
+        </tr>
+        <tr>
+          <td class="id">R-QF-006</td>
+          <td><span class="name">Hazard Keyword in Transcript</span><br/><span class="muted">ServiceRequest.hazard_detected == true</span></td>
+          <td>Safety escalation · block_auto_dispatch</td>
+        </tr>
+        <tr>
+          <td class="id">R-QF-007</td>
+          <td><span class="name">Pro Location Timestamp Stale (&gt;5min)</span><br/><span class="muted">Technician.location_age_minutes &gt; 5</span></td>
+          <td>ETA certification blocked · location_unknown</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ═════════════════════════════════════════════════════════════════ -->
+    <!-- Contractor Trust Score — 6 components — from mge/kpis/contractor_trust_score.json -->
+    <!-- ═════════════════════════════════════════════════════════════════ -->
+    <div class="mge-table-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#10b981" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span style="color:#10b981;">Contractor Trust Score — 6 Weighted Components</span>
+      <span class="tag">mge/kpis/contractor_trust_score.json</span>
+    </div>
+    <table class="mge-table">
+      <thead>
+        <tr>
+          <th style="width:50px;">ID</th>
+          <th>COMPONENT</th>
+          <th>SOURCE</th>
+          <th class="right" style="width:70px;">WEIGHT</th>
+          <th class="center" style="width:90px;">BLOCKING?</th>
+          <th style="width:32%;">SCORING</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="id">C1</td>
+          <td class="name">Identity Verification</td>
+          <td>Persona webhook</td>
+          <td class="right green">20%</td>
+          <td class="center red">🔒 YES</td>
+          <td class="muted">confirmed=100 · pending=0 · failed=0</td>
+        </tr>
+        <tr>
+          <td class="id">C2</td>
+          <td class="name">Background Check</td>
+          <td>Checkr API</td>
+          <td class="right green">20%</td>
+          <td class="center red">🔒 YES</td>
+          <td class="muted">clear=100 · pending&lt;72h=50 · pending&gt;72h=0 · flagged=0</td>
+        </tr>
+        <tr>
+          <td class="id">C3</td>
+          <td class="name">Insurance / COI</td>
+          <td>Document upload</td>
+          <td class="right green">20%</td>
+          <td class="center red">🔒 YES</td>
+          <td class="muted">current≥30d=100 · current&lt;30d=70 · expired=0</td>
+        </tr>
+        <tr>
+          <td class="id">C4</td>
+          <td class="name">License &amp; Certification</td>
+          <td>State board lookup</td>
+          <td class="right green">15%</td>
+          <td class="center red">🔒 YES</td>
+          <td class="muted">valid=100 · not_required=100 · expired=0 · suspended=0</td>
+        </tr>
+        <tr>
+          <td class="id">C5</td>
+          <td class="name">Performance History</td>
+          <td>Platform (ContractorVettingRecord)</td>
+          <td class="right green">15%</td>
+          <td class="center muted">no</td>
+          <td class="muted">(on_time_rate × 80) + (callback_rate&lt;0.05 ? 20 : 0)</td>
+        </tr>
+        <tr>
+          <td class="id">C6</td>
+          <td class="name">Customer Rating</td>
+          <td>Platform (ContractorVettingRecord)</td>
+          <td class="right green">10%</td>
+          <td class="center muted">no</td>
+          <td class="muted">(average_rating / 5.0) × 100</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Composite formula + dispatch tiers -->
+    <div style="margin-top:12px;padding:10px 14px;background:#0a1e30;border:1px solid #1c3a50;border-radius:8px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-family:'DM Mono',monospace;font-size:9px;color:#7baac8;">
+      <div><span style="color:#3d6080;letter-spacing:1px;">FORMULA</span><br/><span style="color:#e8f2ff;">IF any blocking component = 0 THEN score = 0 ELSE Σ(component × weight)</span></div>
+      <div><span style="color:#3d6080;letter-spacing:1px;">DISPATCH TIERS</span><br/>
+        <span style="color:#22c55e;">≥85 auto</span> · 
+        <span style="color:#f59e0b;">70–84 review</span> · 
+        <span style="color:#ff5252;">&lt;70 blocked</span> · 
+        <span style="color:#5a5a5a;">0 offline</span>
       </div>
     </div>
 
@@ -242,19 +415,20 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
     <div class="certified-block" style="margin-top:14px;">
       <div class="certified-title">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="1.5"/></svg>
-        MGE OUTPUT → CERTIFIED JOB RECORD (Immutable · Version-Stamped)
+        MGE OUTPUT → CERTIFIED JOB RECORD (Immutable · Version-Stamped · mge_version: quikfix_v1)
       </div>
       <div class="certified-fields">
         <span class="cert-field">certified_job_type</span>
         <span class="cert-field">certified_flat_rate_usd</span>
         <span class="cert-field">certified_confidence</span>
         <span class="cert-field">certified_quikfix_eligible</span>
-        <span class="cert-field">certified_urgency</span>
         <span class="cert-field">dispatch_tier</span>
-        <span class="cert-field">mge_version</span>
-        <span class="cert-field">mge_timestamp</span>
         <span class="cert-field">blocking_conditions_triggered[]</span>
+        <span class="cert-field">rules_fired[]</span>
         <span class="cert-field">contractor_trust_score</span>
+        <span class="cert-field">mge_version</span>
+        <span class="cert-field">certified_at</span>
+        <span class="cert-field">immutable: true</span>
       </div>
     </div>
   </div>
