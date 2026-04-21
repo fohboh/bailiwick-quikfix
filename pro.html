@@ -2301,12 +2301,9 @@ function DashboardScreen({
     onStatusChange(next);
   }
 
-  // Simulate incoming job after 4s if online
-  useEffect(() => {
-    if (status !== "online") return;
-    const t = setTimeout(onIncomingJob, 4000);
-    return () => clearTimeout(t);
-  }, [status]);
+  // Demo: incoming job triggered manually via the button on the dashboard.
+  // (Previously auto-fired after 4s, which blew past the Trust Firewall panel
+  // before buyers could read it.)
   const TAB_SCREENS = {
     home: /*#__PURE__*/React.createElement("div", {
       style: {
@@ -2457,7 +2454,41 @@ function DashboardScreen({
         transition: "left 0.3s",
         boxShadow: "0 1px 4px rgba(0,0,0,0.3)"
       }
-    }))), /*#__PURE__*/React.createElement("div", {
+    }))),
+    /* ── Demo trigger: manual incoming-job button ── */
+    /*#__PURE__*/React.createElement("button", {
+      onClick: onIncomingJob,
+      style: {
+        width: "100%",
+        background: P.amber + "14",
+        border: "1px dashed " + P.amber + "88",
+        borderRadius: 14,
+        padding: "12px 16px",
+        marginBottom: 12,
+        fontFamily: "inherit",
+        fontSize: 13,
+        fontWeight: 600,
+        color: P.amber,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10
+      }
+    },
+      /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 10,
+          letterSpacing: 1.5,
+          background: P.amber + "22",
+          padding: "2px 6px",
+          borderRadius: 4,
+          fontWeight: 700
+        }
+      }, "DEMO"),
+      "Simulate incoming job \u2192"
+    ),
+    /*#__PURE__*/React.createElement("div", {
       style: {
         display: "grid",
         gridTemplateColumns: "1fr 1fr 1fr",
