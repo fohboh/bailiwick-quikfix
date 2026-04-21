@@ -18,6 +18,16 @@
   </style>
 </head>
 <body>
+<script>
+// API routing: Claude.ai artifacts + local file = direct (key injected by platform)
+// Vercel / any real domain = proxy through /api/chat (key stored server-side)
+window.CLAUDE_API_URL = (
+  window.location.protocol === "file:" ||
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname.endsWith(".claude.ai")
+) ? "https://api.anthropic.com/v1/messages" : "/api/chat";
+</script>
   <div id="root"></div>
   <script>var useState=React.useState,useRef=React.useRef,useEffect=React.useEffect;</script>
   <script>
@@ -80,7 +90,7 @@ function validate(job, t) {
   };
 }
 async function callClaude(transcript) {
-  const res = await fetch("/api/chat", {
+  const res = await fetch(window.CLAUDE_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -981,7 +991,7 @@ Never ask more than 3 follow-up questions total.`;
         role: m.role === "assistant" ? "assistant" : "user",
         content: m.text
       }));
-      const res = await fetch("/api/chat", {
+      const res = await fetch(window.CLAUDE_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -1759,7 +1769,23 @@ function RequestScreen({
       borderRadius: "50%",
       background: T.red
     }
-  }), "Demo active \u2014 any ZIP", /*#__PURE__*/React.createElement("button", {
+  }), "Demo active \u2014 any ZIP", /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 6, marginLeft: 8 }
+  },
+  ["Pro App", "Console", "Arch"].map(function(label) {
+    var urls = { "Pro App": "/pro.html", "Console": "/console.html", "Arch": "/architecture.html" };
+    return /*#__PURE__*/React.createElement("a", {
+      key: label,
+      href: urls[label],
+      style: {
+        fontSize: 10, fontWeight: 700, color: "#D32F2F",
+        background: "#fff", borderRadius: 4,
+        padding: "2px 7px", textDecoration: "none",
+        border: "1px solid #D32F2F", whiteSpace: "nowrap"
+      }
+    }, label);
+  })
+), /*#__PURE__*/React.createElement("button", {
     onClick: () => setDemo(false),
     style: {
       background: "transparent",
@@ -5721,7 +5747,7 @@ function SupportChat({
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(window.CLAUDE_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -7379,5 +7405,6 @@ function App() {
 
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
   </script>
+
 </body>
 </html>
