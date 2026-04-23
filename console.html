@@ -15,6 +15,9 @@
     ::-webkit-scrollbar-thumb{background:#1c2f4a;border-radius:2px;}
     ::-webkit-scrollbar-track{background:transparent;}
     input,select,textarea{font-family:inherit;}
+    .setting-input{transition:border-color 0.15s,box-shadow 0.15s;cursor:text;}
+    .setting-input:hover{border-color:#3b82f6 !important;}
+    .setting-input:focus{border-color:#3b82f6 !important;box-shadow:0 0 0 3px #3b82f633;outline:none;}
   </style>
 </head>
 <body>
@@ -254,12 +257,6 @@ const SEED = {
     status: "active",
     calls: 18,
     latency: 0.9,
-    lastRun: "2:32 PM"
-  }, {
-    name: "Pricing",
-    status: "active",
-    calls: 18,
-    latency: 0.7,
     lastRun: "2:32 PM"
   }, {
     name: "Dispatch",
@@ -1660,7 +1657,7 @@ function DispatchTab({
         gap: 3
       }
     }, "CONFIDENCE", /*#__PURE__*/React.createElement(Tooltip, {
-      what: "The AI pipeline's confidence score (0\u2013100%) that it correctly classified this repair and priced it accurately from the customer's transcript.",
+      what: "The AI classifier's confidence score (0\u2013100%) that it correctly classified this repair from the customer's transcript. The flat-rate price is a deterministic MGE catalog lookup based on the classification — not AI-generated.",
       needed: "Confidence gates auto-dispatch. Jobs below 90% are held for human review. The score is calculated after both the Extract and Price stages of the Claude pipeline.",
       matters: "Low confidence scores cost ops time and delay the customer. If a repair type consistently scores below 90%, the prompt for that category needs refinement."
     })), /*#__PURE__*/React.createElement("div", {
@@ -1925,7 +1922,7 @@ function ReviewTab({
       color: C.amber
     }
   }, "$", rj.aiRate), /*#__PURE__*/React.createElement(Tooltip, {
-    what: `The rate the Claude Pricing Agent returned for this job: $${rj.aiRate}. This is the flat-rate catalog price for the classified repair type.`,
+    what: `The flat-rate price returned for this job: $${rj.aiRate}. This price comes from the MGE deterministic catalog lookup for the classified repair type — not from an LLM.`,
     needed: "You need to know the AI's starting point before you override it, so you can assess whether the AI was close, too low, or completely wrong.",
     matters: "If you approve at the AI rate and the actual scope is larger, the contractor may refuse to complete the job or the customer may be charged more than quoted \u2014 both damage trust. Override when scope is unclear."
   })), rj.suggestedRate > 0 && /*#__PURE__*/React.createElement("span", {
@@ -2220,9 +2217,9 @@ function AnalyticsTab({
     color: C.qfx,
     sub: "Classification accuracy",
     tip: {
-      what: "Average AI confidence score across all jobs this week. The confidence score measures how certain the Claude pipeline is about its job classification and pricing.",
+      what: "Average AI confidence score across all jobs this week. The confidence score measures how certain the Claude classifier is about its job classification — job_type and scope_level. Pricing itself is a deterministic MGE catalog lookup and is not influenced by this score.",
       needed: "Average confidence directly predicts your review queue volume. Lower confidence = more manual reviews = slower dispatch and higher ops cost.",
-      matters: "Below 85% means the AI is struggling with your current job mix — review which categories are dragging down the average in the Prompts tab and consider prompt refinement."
+      matters: "Below 85% means the AI is struggling with your current job mix — review which categories are dragging down the average and consider classifier prompt refinement with the MGE governance team."
     }
   }), /*#__PURE__*/React.createElement(KPI, {
     label: "Schema Valid",
@@ -2230,19 +2227,19 @@ function AnalyticsTab({
     color: C.green,
     sub: "Post-validator pass rate",
     tip: {
-      what: "Percentage of AI pipeline outputs that pass the post-LLM deterministic validator — meaning they contain all required fields, valid enums, and no illegal values.",
+      what: "Percentage of AI classifier outputs that pass the post-LLM deterministic validator — meaning they contain all required fields, valid enums, and no illegal values.",
       needed: "Schema validation is the safety net between Claude's output and actual dispatch. If this drops, the validator is catching more errors — and silently blocking jobs from going out.",
-      matters: "Below 97% is a red alert. It means the AI is producing malformed outputs — either a prompt regression or a model update changed output format. Check the Prompts tab immediately."
+      matters: "Below 97% is a red alert. It means the AI is producing malformed outputs — either a prompt regression or a model update changed output format. Escalate to MGE governance immediately."
     }
   }), /*#__PURE__*/React.createElement(KPI, {
-    label: "Rate Accuracy",
+    label: "Classification Accuracy",
     value: `${ai.rateAccuracy}%`,
     color: C.blue,
     sub: "vs human review panel",
     tip: {
-      what: "Percentage of AI-generated prices that match the price a human reviewer would assign, benchmarked against a monthly review dataset of 50 randomly sampled jobs.",
-      needed: "Rate accuracy measures whether customers are being quoted the right price. Inaccurate pricing leads to disputes, contractor refusals, and chargebacks.",
-      matters: "Below 90% means 1-in-10 jobs is mispriced. That's customer trust damage and potential refund exposure. Update the Pricing prompt with additional examples from recent review queue overrides."
+      what: "Percentage of AI classifier outputs (job_type + scope_level) that match what a human reviewer would assign, benchmarked against a monthly review dataset of 50 randomly sampled jobs. The classifier identifies the job; the flat-rate price is a deterministic MGE catalog lookup based on that classification — not AI-generated.",
+      needed: "When the classifier assigns the wrong job_type or scope_level, the MGE catalog returns the wrong flat rate. Misclassification is the root cause of most pricing disputes, contractor refusals, and chargebacks.",
+      matters: "Below 90% means roughly 1-in-10 jobs is misclassified. That's customer trust damage and potential refund exposure. The fix is prompt improvement — add examples, refine scope definitions. Prices themselves come from the MGE catalog and are governed separately (see Pricing & Fees and the MGE Validation tab)."
     }
   }), /*#__PURE__*/React.createElement(KPI, {
     label: "Avg AI Latency",
@@ -2422,14 +2419,9 @@ function AgentsTab({
         matters: "If Intake is down or erroring, no new jobs can enter the pipeline at all. Every customer submission will fail silently."
       },
       "Classification": {
-        what: "Assigns job_type (plumbing, electrical, drywall, appliance, door_window, other) and extracts the specific_fix description from the customer's words.",
-        needed: "Correct classification routes the job to the right contractor trade and determines which flat-rate price to look up.",
-        matters: "Misclassification means wrong contractor, wrong tools, and a job that can't be completed — resulting in a no-show, a refund, and a 1-star rating."
-      },
-      "Pricing": {
-        what: "Looks up the flat-rate catalog price for the classified repair, calculates the confidence score, and determines QuikFix eligibility.",
-        needed: "Pricing is the customer-facing commitment. The number shown on the Confirm screen is this agent's output.",
-        matters: "Pricing errors are the most customer-visible failure. An overcharge causes chargebacks. An undercharge loses revenue and may cause contractors to decline the job."
+        what: "Assigns job_type (plumbing, electrical, drywall, appliance, door_window, other) and scope_level (simple, standard, complex), and extracts the specific_fix description from the customer's words.",
+        needed: "Correct classification routes the job to the right contractor trade. The classification is then passed to the MGE deterministic pricing engine, which returns the flat rate.",
+        matters: "Misclassification means wrong contractor, wrong tools, and a job that can't be completed — resulting in a no-show, a refund, and a 1-star rating. The classifier itself does not price — price is a downstream MGE catalog lookup."
       },
       "Dispatch": {
         what: "Finds the best available contractor within a 30-minute drive radius using PostGIS + Mapbox Isochrone, sorted by ETA then trust score.",
@@ -2632,139 +2624,382 @@ function AgentsTab({
   }))))));
 }
 
+
 /* ═══════════════════════════════════════════════════════════
-   PROMPTS TAB
+   PRICING CATALOG TAB
+   Product-owner workflow for viewing, downloading, and uploading
+   the versioned deterministic catalog. Claude is NOT involved.
 ═══════════════════════════════════════════════════════════ */
-function PromptsTab() {
-  const [sel, setSel] = useState("intake");
-  const PROMPTS = {
-    intake: {
-      version: "v2.4",
-      lastUpdated: "Apr 12 2026",
-      author: "Ops Team",
-      content: `You are Bailiwick Dispatch AI, the decision engine for BailiwickQuikFix Home Repairs.\nConvert the homeowner's spoken repair request into a structured, dispatch-ready job ticket.\nReturn ONLY valid JSON. No preamble, no explanation, no markdown.\n\nRULES:\n1. Extract only what is explicitly stated. Never infer or assume.\n2. Emergency trigger words: water, gas, fire, electricity, sparking, flood, smoke → urgency="emergency"\n3. Classify job_type as: plumbing | electrical | drywall | appliance | door_window | other\n4. parts_included: false unless explicitly stated\n5. requires_human_review: true if ambiguous, multi-issue, job_type=other, or confidence <90%\n6. quikfix_eligible: true ONLY if single standard repair, confidence≥90%, no hazard, not multi-issue\n\nReturn schema: { job_type, specific_fix, urgency, estimated_minutes, flat_rate_usd, parts_included, requires_human_review, quikfix_eligible, sla_target_minutes, questions_for_user[], dispatch_instructions, confidence }`
-    },
-    pricing: {
-      version: "v1.8",
-      lastUpdated: "Apr 15 2026",
-      author: "Pricing Team",
-      content: `Apply flat-rate pricing from the BailiwickQuikFix catalog.\nCATALOG: faucet→89, toilet→79, outlet/switch→59, disposal→65, lock→85, blind→49, drywall→69, ceiling_fan→125, unclog→95\nIf job is in catalog: return exact price, quikfix_eligible=true if confidence≥90%\nIf NOT in catalog: return requires_human_review=true, do not guess a price`
-    }
+const CURRENT_CATALOG_VERSION = "2026-Q2-v1.1";
+const CURRENT_CATALOG_ROW_COUNT = 72;  // 4 markets × 6 job_types × 3 scope_levels
+const CURRENT_CATALOG_UPLOADED = "Apr 23, 2026 · 9:32 AM";
+const CURRENT_CATALOG_UPLOADER = "product@bailiwickquikfix.com";
+
+const MARKETS = ["austin", "dallas", "denver", "nashville"];
+const JOB_TYPES = ["plumbing", "electrical", "drywall", "appliance", "door_window", "handyman"];
+const SCOPE_LEVELS = ["simple", "standard", "complex"];
+
+/* Blank template — all 72 rows with empty rate cells. Product owner fills
+   these in when authoring a fresh catalog version. */
+function generateBlankTemplate() {
+  const notes = {
+    "plumbing/simple":    "< 45 min (e.g. faucet drip, toilet running, disposal jam)",
+    "plumbing/standard":  "45 min – 2 hr (e.g. faucet replace, toilet clog, sink drain)",
+    "plumbing/complex":   "2–4 hr (e.g. water heater repair, main drain, pipe leak)",
+    "electrical/simple":  "< 45 min (e.g. outlet replace, switch replace, dimmer)",
+    "electrical/standard":"45 min – 2 hr (e.g. ceiling fan install, thermostat install)",
+    "electrical/complex": "2–4 hr (e.g. breaker tripping, circuit trace)",
+    "drywall/simple":     "< 45 min (e.g. small wall crack, nail pops)",
+    "drywall/standard":   "45 min – 2 hr (e.g. hole from doorknob, TV mount)",
+    "drywall/complex":    "2–4 hr (e.g. large dent, water stain on ceiling)",
+    "appliance/simple":   "< 45 min (e.g. disposal reset, dishwasher drain)",
+    "appliance/standard": "45 min – 2 hr (e.g. dryer slow, washer leak)",
+    "appliance/complex":  "2–4 hr (e.g. refrigerator cooling, oven diagnostic)",
+    "door_window/simple": "< 45 min (e.g. hinge squeak, knob wobbly)",
+    "door_window/standard":"45 min – 2 hr (e.g. deadbolt, new lock install)",
+    "door_window/complex":"2–4 hr (e.g. frame alignment, multi-door work)",
+    "handyman/simple":    "< 45 min (e.g. picture hanging, towel bar, caulk)",
+    "handyman/standard":  "45 min – 2 hr (e.g. blinds install, furniture assembly)",
+    "handyman/complex":   "2–4 hr (e.g. multi-room punch list)"
   };
-  const current = PROMPTS[sel] || PROMPTS.intake;
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      marginBottom: 14,
-      alignItems: "center"
-    }
-  }, Object.keys(PROMPTS).map(k => /*#__PURE__*/React.createElement("button", {
-    key: k,
-    onClick: () => setSel(k),
-    style: {
-      fontFamily: font,
-      fontSize: 11,
-      fontWeight: 700,
-      cursor: "pointer",
-      borderRadius: 8,
-      padding: "6px 14px",
-      background: sel === k ? C.blue + "22" : "transparent",
-      color: sel === k ? C.blue : C.muted,
-      border: `1px solid ${sel === k ? C.blue : C.border}`
-    }
-  }, k.charAt(0).toUpperCase() + k.slice(1))), /*#__PURE__*/React.createElement(Tooltip, {
-    what: "The Prompts tab displays the full text of each active Claude AI prompt powering the dispatch pipeline. Select a stage to view its current prompt version.",
-    needed: "Ops and engineering need visibility into exactly what instructions are being sent to Claude. Without this, debugging a classification error requires digging through code.",
-    matters: "Every word in these prompts affects how tens or hundreds of jobs per day are classified and priced. A single ambiguous instruction can degrade AI accuracy across an entire repair category."
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: C.card,
-      border: `1px solid ${C.border}`,
-      borderRadius: 14,
-      overflow: "hidden"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "14px 16px",
-      borderBottom: `1px solid ${C.border}`,
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: C.text
-    }
-  }, sel.charAt(0).toUpperCase() + sel.slice(1), " Prompt "), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: C.blue,
-      fontFamily: "monospace"
-    }
-  }, current.version), /*#__PURE__*/React.createElement(Tooltip, {
-    what: `This is the ${sel} prompt at version ${current.version}, last updated ${current.lastUpdated} by ${current.author}. It is the exact text sent to claude-sonnet-4-20250514 for this pipeline stage.`,
-    needed: "Displaying the full prompt here means any team member can audit what the AI is being asked to do without needing database access or engineering support.",
-    matters: "If this prompt is edited in production without going through the staging and A/B test process, it can break the entire dispatch pipeline immediately. Read the warning below before making any changes."
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 10,
-      color: C.muted
-    }
-  }, "Updated ", current.lastUpdated, " by ", current.author), /*#__PURE__*/React.createElement(Badge, {
-    label: "Active",
-    color: C.green,
-    small: true
-  }), /*#__PURE__*/React.createElement(Btn, {
-    label: "New Version",
-    variant: "primary",
-    size: "sm"
-  }))), /*#__PURE__*/React.createElement("pre", {
-    style: {
-      padding: 16,
-      fontSize: 12,
-      color: C.sub,
-      lineHeight: 1.7,
-      whiteSpace: "pre-wrap",
-      fontFamily: "'Courier New', monospace",
-      background: C.surf,
-      margin: 0,
-      maxHeight: 360,
-      overflowY: "auto"
-    }
-  }, current.content)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: C.amberBg,
-      border: `1px solid ${C.amber}33`,
-      borderRadius: 10,
-      padding: "10px 14px",
-      marginTop: 10,
-      fontSize: 12,
-      color: C.amber,
-      display: "flex",
-      alignItems: "flex-start",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "\u26A0\uFE0F"), /*#__PURE__*/React.createElement("span", null, "Never edit a live prompt. Create a new version, A/B test in staging, validate accuracy against the review dataset, then promote. A bad prompt in production affects every job in real time."), /*#__PURE__*/React.createElement(Tooltip, {
-    what: "This warning enforces the prompt governance policy. Live prompts power every active job dispatch. Editing them in place has immediate, irreversible effects on all in-flight jobs.",
-    needed: "Without this guardrail, a well-meaning edit to 'improve' a prompt could inadvertently break the JSON schema, change urgency classification, or disable QuikFix eligibility for all jobs.",
-    matters: "A prompt regression at peak hours (5pm Friday) could silently misprice hundreds of jobs before anyone notices. Always stage, test, and promote \u2014 never edit live."
-  })));
+  const lines = ["catalog_version,market,job_type,scope_level,flat_rate_usd,notes"];
+  MARKETS.forEach(function(m) {
+    JOB_TYPES.forEach(function(jt) {
+      SCOPE_LEVELS.forEach(function(sl) {
+        const note = notes[jt + "/" + sl] || "";
+        lines.push('YYYY-Qn-vM.m,' + m + ',' + jt + ',' + sl + ',,"' + note + '"');
+      });
+    });
+  });
+  return lines.join("\n") + "\n";
 }
+
+/* Demo / current catalog — all 72 rows populated with the live rates.
+   This is what a working catalog file looks like. */
+function generateDemoCatalog() {
+  const rates = {
+    austin:   {plumbing:[85,145,225],  electrical:[79,135,215], drywall:[65,125,195], appliance:[89,149,235],  door_window:[75,129,199], handyman:[55,95,155]},
+    dallas:   {plumbing:[89,149,235],  electrical:[85,139,219], drywall:[69,129,199], appliance:[95,155,245],  door_window:[79,135,205], handyman:[59,99,159]},
+    denver:   {plumbing:[95,165,255],  electrical:[89,155,239], drywall:[75,135,215], appliance:[105,175,265], door_window:[85,145,225], handyman:[65,109,175]},
+    nashville:{plumbing:[79,135,209],  electrical:[75,125,199], drywall:[59,115,179], appliance:[85,139,219],  door_window:[69,119,185], handyman:[49,89,145]}
+  };
+  const notes = {
+    "plumbing/simple":    "< 45 min (e.g. faucet drip, toilet running, disposal jam)",
+    "plumbing/standard":  "45 min – 2 hr (e.g. faucet replace, toilet clog, sink drain)",
+    "plumbing/complex":   "2–4 hr (e.g. water heater repair, main drain, pipe leak)",
+    "electrical/simple":  "< 45 min (e.g. outlet replace, switch replace, dimmer)",
+    "electrical/standard":"45 min – 2 hr (e.g. ceiling fan install, thermostat install)",
+    "electrical/complex": "2–4 hr (e.g. breaker tripping, circuit trace)",
+    "drywall/simple":     "< 45 min (e.g. small wall crack, nail pops)",
+    "drywall/standard":   "45 min – 2 hr (e.g. hole from doorknob, TV mount)",
+    "drywall/complex":    "2–4 hr (e.g. large dent, water stain on ceiling)",
+    "appliance/simple":   "< 45 min (e.g. disposal reset, dishwasher drain)",
+    "appliance/standard": "45 min – 2 hr (e.g. dryer slow, washer leak)",
+    "appliance/complex":  "2–4 hr (e.g. refrigerator cooling, oven diagnostic)",
+    "door_window/simple": "< 45 min (e.g. hinge squeak, knob wobbly)",
+    "door_window/standard":"45 min – 2 hr (e.g. deadbolt, new lock install)",
+    "door_window/complex":"2–4 hr (e.g. frame alignment, multi-door work)",
+    "handyman/simple":    "< 45 min (e.g. picture hanging, towel bar, caulk)",
+    "handyman/standard":  "45 min – 2 hr (e.g. blinds install, furniture assembly)",
+    "handyman/complex":   "2–4 hr (e.g. multi-room punch list)"
+  };
+  const lines = ["catalog_version,market,job_type,scope_level,flat_rate_usd,notes"];
+  MARKETS.forEach(function(m) {
+    JOB_TYPES.forEach(function(jt) {
+      SCOPE_LEVELS.forEach(function(sl, i) {
+        const rate = rates[m][jt][i];
+        const note = notes[jt + "/" + sl] || "";
+        lines.push(CURRENT_CATALOG_VERSION + ',' + m + ',' + jt + ',' + sl + ',' + rate + ',"' + note + '"');
+      });
+    });
+  });
+  return lines.join("\n") + "\n";
+}
+
+function downloadCsv(filename, content) {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 100);
+}
+
+/* Parse + validate an uploaded CSV. Returns { ok, rows, errors }. */
+function validateCatalogCsv(text) {
+  const errors = [];
+  const rows = [];
+  const lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+  if (lines.length < 2) {
+    errors.push("File is empty or has no data rows.");
+    return { ok: false, rows: rows, errors: errors };
+  }
+  const header = lines[0].trim();
+  const EXPECTED_HEADER = "catalog_version,market,job_type,scope_level,flat_rate_usd,notes";
+  if (header !== EXPECTED_HEADER) {
+    errors.push("Header row must be exactly: " + EXPECTED_HEADER);
+    errors.push("Got: " + header);
+    return { ok: false, rows: rows, errors: errors };
+  }
+  const seenVersions = {};
+  const seenCombos = {};
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    // Simple CSV parse — handles quoted notes with commas
+    const m = line.match(/^([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),(.*)$/);
+    if (!m) {
+      errors.push("Row " + (i + 1) + ": unable to parse (expected 6 columns).");
+      continue;
+    }
+    const row = {
+      catalog_version: m[1].trim(),
+      market: m[2].trim(),
+      job_type: m[3].trim(),
+      scope_level: m[4].trim(),
+      flat_rate_usd: m[5].trim(),
+      notes: m[6].trim().replace(/^"|"$/g, "")
+    };
+    if (!row.catalog_version.match(/^\d{4}-Q[1-4]-v\d+\.\d+$/)) {
+      errors.push("Row " + (i + 1) + ": catalog_version must match YYYY-Qn-vM.m (got '" + row.catalog_version + "').");
+    }
+    seenVersions[row.catalog_version] = true;
+    if (MARKETS.indexOf(row.market) === -1) {
+      errors.push("Row " + (i + 1) + ": market must be one of " + MARKETS.join("/") + " (got '" + row.market + "').");
+    }
+    if (JOB_TYPES.indexOf(row.job_type) === -1) {
+      errors.push("Row " + (i + 1) + ": job_type must be one of " + JOB_TYPES.join("/") + " (got '" + row.job_type + "').");
+    }
+    if (SCOPE_LEVELS.indexOf(row.scope_level) === -1) {
+      errors.push("Row " + (i + 1) + ": scope_level must be simple/standard/complex (got '" + row.scope_level + "').");
+    }
+    const rate = parseInt(row.flat_rate_usd, 10);
+    if (isNaN(rate) || rate < 10 || rate > 999) {
+      errors.push("Row " + (i + 1) + ": flat_rate_usd must be integer between 10 and 999 (got '" + row.flat_rate_usd + "').");
+    } else {
+      row.flat_rate_usd = rate;
+    }
+    const combo = row.market + "/" + row.job_type + "/" + row.scope_level;
+    if (seenCombos[combo]) {
+      errors.push("Row " + (i + 1) + ": duplicate (market, job_type, scope_level) combination: " + combo);
+    }
+    seenCombos[combo] = true;
+    rows.push(row);
+  }
+  const versionCount = Object.keys(seenVersions).length;
+  if (versionCount > 1) {
+    errors.push("Mixed catalog versions detected (" + versionCount + " different versions). All rows must share one version.");
+  }
+  // Completeness check
+  const expectedCombos = MARKETS.length * JOB_TYPES.length * SCOPE_LEVELS.length;
+  if (Object.keys(seenCombos).length < expectedCombos) {
+    const missing = [];
+    MARKETS.forEach(function(m) {
+      JOB_TYPES.forEach(function(jt) {
+        SCOPE_LEVELS.forEach(function(sl) {
+          if (!seenCombos[m + "/" + jt + "/" + sl]) missing.push(m + "/" + jt + "/" + sl);
+        });
+      });
+    });
+    errors.push("Incomplete catalog: " + missing.length + " combinations missing. First: " + missing.slice(0, 3).join(", "));
+  }
+  return { ok: errors.length === 0, rows: rows, errors: errors, version: Object.keys(seenVersions)[0] };
+}
+
+function PricingCatalogTab({ notify }) {
+  const [uploadResult, setUploadResult] = useState(null);  // { ok, rows, errors, version }
+  const [uploadName, setUploadName] = useState("");
+  const fileInputRef = useRef(null);
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadName(file.name);
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const result = validateCatalogCsv(ev.target.result);
+      setUploadResult(result);
+    };
+    reader.readAsText(file);
+  }
+
+  function commitUpload() {
+    // Prototype: we notify and reset. In V2 production, this would POST to
+    // an endpoint that stores the new catalog and bumps CATALOG_VERSION.
+    notify("Catalog v" + uploadResult.version + " staged — commit to repo to deploy", C.green);
+    setUploadResult(null);
+    setUploadName("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function cancelUpload() {
+    setUploadResult(null);
+    setUploadName("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  return /*#__PURE__*/React.createElement("div", null,
+    /* ── Header: current catalog status ── */
+    /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.card,
+        border: `1px solid ${C.border}`,
+        borderRadius: 14,
+        padding: 18,
+        marginBottom: 14
+      }
+    },
+      /*#__PURE__*/React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 } },
+        /*#__PURE__*/React.createElement("div", null,
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: C.sub, letterSpacing: 1.5, marginBottom: 4 } }, "CURRENT CATALOG"),
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 24, fontWeight: 800, color: C.text, fontFamily: "monospace" } }, CURRENT_CATALOG_VERSION),
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 12, color: C.muted, marginTop: 4 } }, CURRENT_CATALOG_ROW_COUNT + " rows · uploaded " + CURRENT_CATALOG_UPLOADED + " by " + CURRENT_CATALOG_UPLOADER)
+        ),
+        /*#__PURE__*/React.createElement(Badge, { label: "LIVE", color: C.green })
+      ),
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: 13, color: C.sub, lineHeight: 1.5 } },
+        "This catalog is the deterministic source for every flat rate shown to a customer. Claude classifies the job; this catalog is looked up by (market × job_type × scope_level); MGE certifies the result. Claude never sees this data."
+      )
+    ),
+
+    /* ── Download templates ── */
+    /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.card,
+        border: `1px solid ${C.border}`,
+        borderRadius: 14,
+        padding: 18,
+        marginBottom: 14
+      }
+    },
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: C.sub, letterSpacing: 1.5, marginBottom: 10 } }, "DOWNLOAD TEMPLATES"),
+      /*#__PURE__*/React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+        /*#__PURE__*/React.createElement("div", { style: { background: C.lift, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14 } },
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 } }, "📋 Blank template"),
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 12, color: C.muted, marginBottom: 10, lineHeight: 1.5 } }, "All 72 (market × job_type × scope_level) rows with empty rate cells. Fill in, upload."),
+          /*#__PURE__*/React.createElement("button", {
+            onClick: function() { downloadCsv("catalog-template-blank.csv", generateBlankTemplate()); },
+            style: { background: C.blue, color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: font }
+          }, "⬇ Download blank template")
+        ),
+        /*#__PURE__*/React.createElement("div", { style: { background: C.lift, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14 } },
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 } }, "✅ Current demo catalog"),
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 12, color: C.muted, marginBottom: 10, lineHeight: 1.5 } }, "All 72 rows filled with the live v1.1 rates. Reference example or starting point."),
+          /*#__PURE__*/React.createElement("button", {
+            onClick: function() { downloadCsv("catalog-" + CURRENT_CATALOG_VERSION + ".csv", generateDemoCatalog()); },
+            style: { background: C.qfx, color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: font }
+          }, "⬇ Download demo catalog")
+        )
+      )
+    ),
+
+    /* ── Instructions ── */
+    /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.card,
+        border: `1px solid ${C.border}`,
+        borderRadius: 14,
+        padding: 18,
+        marginBottom: 14
+      }
+    },
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: C.sub, letterSpacing: 1.5, marginBottom: 10 } }, "HOW TO UPDATE THE CATALOG"),
+      [
+        ["1", "Download", "Click ⬇ Download demo catalog above. Open in Excel, Google Sheets, or Numbers."],
+        ["2", "Edit rates", "Change any flat_rate_usd values you want to update. Keep market / job_type / scope_level columns unchanged — they are the lookup keys."],
+        ["3", "Bump version", "In the catalog_version column, increment to the next version following YYYY-Qn-vM.m. For a quarterly update in Q3 2026, use 2026-Q3-v1.0. All rows share the same version."],
+        ["4", "Save as CSV", "File → Save As → CSV (comma-delimited). Keep the same header row. Do not add or remove columns."],
+        ["5", "Upload", "Click Choose File below. The upload is validated on the spot — the catalog must have all 72 rows, valid enums, rates between $10 and $999, and no duplicates."],
+        ["6", "Review preview", "On successful validation, a preview appears. Compare sample rows against your CSV. If anything looks wrong, click Cancel and re-upload."],
+        ["7", "Commit", "Click Commit Upload to stage the new version. In V2 production, MGE begins stamping the new version on all new Certified Job Records immediately. In the prototype, the CSV is saved and the JS CATALOG object is regenerated on next deploy."]
+      ].map(function(step) {
+        return /*#__PURE__*/React.createElement("div", { key: step[0], style: { display: "flex", gap: 12, padding: "10px 0", borderBottom: `1px solid ${C.border}44` } },
+          /*#__PURE__*/React.createElement("div", { style: { flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: C.blue + "22", border: `1px solid ${C.blue}66`, color: C.blue, fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace" } }, step[0]),
+          /*#__PURE__*/React.createElement("div", { style: { flex: 1 } },
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 2 } }, step[1]),
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 12, color: C.sub, lineHeight: 1.5 } }, step[2])
+          )
+        );
+      })
+    ),
+
+    /* ── Upload ── */
+    /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: C.card,
+        border: `1px solid ${uploadResult ? (uploadResult.ok ? C.green : C.red) + "66" : C.border}`,
+        borderRadius: 14,
+        padding: 18,
+        marginBottom: 14
+      }
+    },
+      /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: C.sub, letterSpacing: 1.5, marginBottom: 10 } }, "UPLOAD NEW CATALOG"),
+      !uploadResult && /*#__PURE__*/React.createElement("label", {
+        style: {
+          display: "block",
+          background: C.lift,
+          border: `2px dashed ${C.border}`,
+          borderRadius: 10,
+          padding: "28px 20px",
+          textAlign: "center",
+          cursor: "pointer",
+          transition: "border-color 0.15s"
+        },
+        onMouseEnter: function(e) { e.currentTarget.style.borderColor = C.blue; },
+        onMouseLeave: function(e) { e.currentTarget.style.borderColor = C.border; }
+      },
+        /*#__PURE__*/React.createElement("input", {
+          ref: fileInputRef,
+          type: "file",
+          accept: ".csv",
+          onChange: handleFile,
+          style: { display: "none" }
+        }),
+        /*#__PURE__*/React.createElement("div", { style: { fontSize: 24, marginBottom: 8 } }, "📄"),
+        /*#__PURE__*/React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 } }, "Choose CSV file to upload"),
+        /*#__PURE__*/React.createElement("div", { style: { fontSize: 12, color: C.muted } }, "Or drag and drop · 72 rows · .csv only")
+      ),
+      uploadResult && /*#__PURE__*/React.createElement("div", null,
+        /*#__PURE__*/React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 } },
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 14, fontWeight: 700, color: C.text, fontFamily: "monospace" } }, uploadName),
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 12, color: uploadResult.ok ? C.green : C.red, marginTop: 2 } },
+              uploadResult.ok
+                ? "✓ Validation passed · " + uploadResult.rows.length + " rows · version " + (uploadResult.version || "?")
+                : "✗ " + uploadResult.errors.length + " validation error" + (uploadResult.errors.length === 1 ? "" : "s")
+            )
+          )
+        ),
+        !uploadResult.ok && /*#__PURE__*/React.createElement("div", { style: { background: C.redBg, border: `1px solid ${C.red}44`, borderRadius: 8, padding: 12, marginBottom: 10, maxHeight: 200, overflowY: "auto" } },
+          uploadResult.errors.map(function(err, i) {
+            return /*#__PURE__*/React.createElement("div", { key: i, style: { fontSize: 12, color: C.redL, fontFamily: "monospace", marginBottom: 4 } }, "· " + err);
+          })
+        ),
+        uploadResult.ok && /*#__PURE__*/React.createElement("div", { style: { background: C.greenBg, border: `1px solid ${C.green}44`, borderRadius: 8, padding: 12, marginBottom: 10 } },
+          /*#__PURE__*/React.createElement("div", { style: { fontSize: 12, color: C.green, fontWeight: 700, marginBottom: 6 } }, "PREVIEW — first 4 rows"),
+          uploadResult.rows.slice(0, 4).map(function(r, i) {
+            return /*#__PURE__*/React.createElement("div", { key: i, style: { fontSize: 11, color: C.text, fontFamily: "monospace", marginBottom: 2 } },
+              r.market + " · " + r.job_type + " · " + r.scope_level + " → $" + r.flat_rate_usd
+            );
+          })
+        ),
+        /*#__PURE__*/React.createElement("div", { style: { display: "flex", gap: 8 } },
+          uploadResult.ok && /*#__PURE__*/React.createElement("button", {
+            onClick: commitUpload,
+            style: { background: C.green, color: "#fff", border: "none", borderRadius: 8, padding: "10px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: font, boxShadow: `0 4px 12px ${C.green}44` }
+          }, "✓ Commit Upload"),
+          /*#__PURE__*/React.createElement("button", {
+            onClick: cancelUpload,
+            style: { background: "transparent", color: C.sub, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: font }
+          }, "Cancel")
+        )
+      )
+    )
+  );
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    SETTINGS TAB
@@ -2772,7 +3007,7 @@ function PromptsTab() {
 function SettingsTab({
   notify
 }) {
-  const [settings, setSettings] = useState({
+  const INITIAL_SETTINGS = {
     quikfixMinConfidence: 90,
     reviewQueueSLAMinutes: 120,
     maxEtaMinutes: 60,
@@ -2783,14 +3018,16 @@ function SettingsTab({
     serviceHoursStart: "7:00 AM",
     serviceHoursEnd: "9:00 PM",
     emergencyKeywords: "water,gas,fire,electricity,sparking,flood,smoke,burning,mold,breaker"
-  });
+  };
+  const [settings, setSettings] = useState(INITIAL_SETTINGS);
+  const isDirty = Object.keys(INITIAL_SETTINGS).some(k => settings[k] !== INITIAL_SETTINGS[k]);
   const settingsDefs = {
     quikfixMinConfidence: {
       label: "QuikFix min confidence (%)",
       note: "Jobs below this % are routed to human review",
       what: "The minimum AI confidence score (0–100) required for a job to be auto-dispatched with the QuikFix badge. Jobs below this threshold go to human review.",
       needed: "This threshold is the line between automated dispatch and human oversight. It controls your review queue volume and your auto-dispatch rate simultaneously.",
-      matters: "Lowering this number increases auto-dispatch speed but increases the risk of misclassified or mispriced jobs reaching customers. 90% is the recommended baseline — do not go below 80%."
+      matters: "Lowering this number increases auto-dispatch speed but increases the risk of misclassified jobs reaching customers (which then causes wrong-contractor dispatch or wrong-catalog-row pricing). 90% is the recommended baseline — do not go below 80%."
     },
     reviewQueueSLAMinutes: {
       label: "Review queue SLA (minutes)",
@@ -2887,6 +3124,7 @@ function SettingsTab({
       }
     }, def.note)), /*#__PURE__*/React.createElement("input", {
       type: type,
+      className: "setting-input",
       value: settings[key],
       onChange: e => setSettings(s => ({
         ...s,
@@ -2998,12 +3236,85 @@ function SettingsTab({
     what: "The emergency keyword list that the post-LLM validator checks against every customer transcript. Matches trigger urgency='emergency' and block auto-dispatch regardless of AI output.",
     needed: "The AI can be fooled by casual language \u2014 'it smells kind of weird, maybe gas?' could get low confidence. These keywords guarantee escalation even when the AI is uncertain.",
     matters: "This is your most important safety control. Every word on this list represents a scenario where a mishandled dispatch could result in injury. Review and update this list every time you expand to a new market or job type."
-  })), row("emergencyKeywords", "text")), /*#__PURE__*/React.createElement(Btn, {
-    label: "Save Configuration",
-    onClick: () => notify("Configuration saved", C.green),
-    variant: "primary",
-    size: "md"
-  }));
+  })), row("emergencyKeywords", "text")),
+    /* ── Action bar: Save + Reset + unsaved-changes indicator ── */
+    /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 16,
+        padding: "14px 16px",
+        background: C.card,
+        border: `1px solid ${isDirty ? C.qfx + "66" : C.border}`,
+        borderRadius: 14,
+        display: "flex",
+        alignItems: "center",
+        gap: 10
+      }
+    },
+      /* Save button — QuikFix green when dirty, muted when clean */
+      /*#__PURE__*/React.createElement("button", {
+        disabled: !isDirty,
+        onClick: () => notify("Configuration saved", C.green),
+        style: {
+          fontFamily: font,
+          fontWeight: 700,
+          fontSize: 13,
+          padding: "10px 18px",
+          borderRadius: 8,
+          cursor: isDirty ? "pointer" : "not-allowed",
+          background: isDirty ? C.qfx : C.lift,
+          color: isDirty ? "#fff" : C.muted,
+          border: isDirty ? "none" : `1px solid ${C.border}`,
+          boxShadow: isDirty ? `0 4px 12px ${C.qfx}44` : "none",
+          transition: "all 0.15s",
+          display: "flex",
+          alignItems: "center",
+          gap: 6
+        }
+      }, "💾 Save Configuration"),
+      /* Reset button — appears when dirty */
+      /*#__PURE__*/React.createElement("button", {
+        disabled: !isDirty,
+        onClick: () => setSettings(INITIAL_SETTINGS),
+        style: {
+          fontFamily: font,
+          fontWeight: 600,
+          fontSize: 12,
+          padding: "9px 14px",
+          borderRadius: 8,
+          cursor: isDirty ? "pointer" : "not-allowed",
+          background: "transparent",
+          color: isDirty ? C.sub : C.muted,
+          border: `1px solid ${C.border}`,
+          opacity: isDirty ? 1 : 0.5,
+          transition: "all 0.15s"
+        }
+      }, "↺ Reset"),
+      /* Dirty-state indicator, pushed right */
+      isDirty && /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginLeft: "auto",
+          fontSize: 11,
+          fontWeight: 700,
+          color: C.qfx,
+          letterSpacing: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 6
+        }
+      },
+        /*#__PURE__*/React.createElement("span", {
+          style: {
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: C.qfx,
+            animation: "ping 2s ease-in-out infinite"
+          }
+        }),
+        "UNSAVED CHANGES"
+      )
+    )
+  );
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3035,10 +3346,6 @@ function UserGuideTab() {
     agents: {
       title: "AI Agents",
       icon: "🤖"
-    },
-    prompts: {
-      title: "Prompts",
-      icon: "💬"
     },
     settings: {
       title: "Settings",
@@ -3126,7 +3433,7 @@ function UserGuideTab() {
         lineHeight: 1.7,
         marginBottom: 16
       }
-    }, "The Dispatch tab shows every job that has entered the platform \u2014 from the moment a customer submits to completion. Use the status filters to find the jobs that need your attention."), [["Tier Dots", "The colored dot at the left of each job card indicates its dispatch tier. Green = auto-dispatched (confidence ≥90%). Amber = in human review. Red = escalated to safety team."], ["Confidence Score", "The AI's certainty score for its classification and pricing. Below 90% = human review required. Below 75% = likely misclassified."], ["ETA Counter", "Drive time in minutes from pro location to customer at dispatch time. Above 30 min = QuikFix SLA at risk."], ["QuikFix ⚡ Badge", "Shown only when all eligibility criteria were met: single repair, confidence ≥90%, no hazards, pro within 30 min drive."], ["Status Filter", "Filter by: All | Matched | En Route | Review | Escalated | Complete. Check Escalated first every shift."]].map(([label, desc]) => /*#__PURE__*/React.createElement("div", {
+    }, "The Dispatch tab shows every job that has entered the platform \u2014 from the moment a customer submits to completion. Use the status filters to find the jobs that need your attention."), [["Tier Dots", "The colored dot at the left of each job card indicates its dispatch tier. Green = auto-dispatched (confidence ≥90%). Amber = in human review. Red = escalated to safety team."], ["Confidence Score", "The AI classifier's certainty score for the job classification (job_type + scope_level). Below 90% = human review required. Below 75% = likely misclassified. The flat-rate price comes from the MGE catalog based on this classification — not from the AI."], ["ETA Counter", "Drive time in minutes from pro location to customer at dispatch time. Above 30 min = QuikFix SLA at risk."], ["QuikFix ⚡ Badge", "Shown only when all eligibility criteria were met: single repair, confidence ≥90%, no hazards, pro within 30 min drive."], ["Status Filter", "Filter by: All | Matched | En Route | Review | Escalated | Complete. Check Escalated first every shift."]].map(([label, desc]) => /*#__PURE__*/React.createElement("div", {
       key: label,
       style: {
         background: C.lift,
@@ -3318,7 +3625,7 @@ function UserGuideTab() {
         letterSpacing: 1.5,
         marginBottom: 10
       }
-    }, "STATUS MEANINGS"), [["Active (green pulse)", "Agent is running and processing calls normally."], ["Waiting (amber)", "Agent is running but has no current workload. Normal for Human Review during quiet periods."], ["Idle (gray)", "Agent has not run recently. Normal for Training (runs nightly). Abnormal for Intake, Pricing, or Dispatch during service hours."], ["Error (red) — if shown", "Agent has failed. Investigate immediately. Check Claude API status and server logs."]].map(([s, d]) => /*#__PURE__*/React.createElement("div", {
+    }, "STATUS MEANINGS"), [["Active (green pulse)", "Agent is running and processing calls normally."], ["Waiting (amber)", "Agent is running but has no current workload. Normal for Human Review during quiet periods."], ["Idle (gray)", "Agent has not run recently. Normal for Training (runs nightly). Abnormal for Intake, Classification, or Dispatch during service hours."], ["Error (red) — if shown", "Agent has failed. Investigate immediately. Check Claude API status and server logs."]].map(([s, d]) => /*#__PURE__*/React.createElement("div", {
       key: s,
       style: {
         display: "flex",
@@ -3359,37 +3666,7 @@ function UserGuideTab() {
         color: C.muted,
         lineHeight: 1.7
       }
-    }, "Intake, Classification, Pricing, and Dispatch are the pipeline core \u2014 if any of these are not Active during service hours, jobs cannot flow. Comms failure means contractors aren't getting alerts. Payment failure means captured jobs don't trigger payouts."))),
-    prompts: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
-      style: {
-        fontSize: 14,
-        color: C.sub,
-        lineHeight: 1.7,
-        marginBottom: 16
-      }
-    }, "Prompts are the instructions sent to Claude for each pipeline stage. View them here. Never edit a live prompt directly."), [["View Only — Never Edit Live", "The prompt viewer is read-only for production prompts. Any changes must go through: New Version → Staging Test → A/B Accuracy Check → Promote."], ["Versioning", "Each prompt has a semver (v2.4, v3.1, etc.) and an author. The accuracy percentage is measured against a monthly human review dataset."], ["When to Update a Prompt", "Update when: a repair category consistently gets low confidence, a new job type is added to the catalog, or a real-world transcript pattern causes misclassification."], ["The Staging Process", "1. Create new version. 2. Run 50 sample transcripts through it. 3. Compare accuracy to current version. 4. If improvement ≥1%, promote. 5. Monitor for 24 hours."], ["Emergency Rollback", "If a promoted prompt causes accuracy to drop or schema errors to spike, roll back to the previous version immediately from the Prompts tab. Do not patch — rollback first, investigate second."]].map(([label, desc]) => /*#__PURE__*/React.createElement("div", {
-      key: label,
-      style: {
-        background: C.lift,
-        border: `1px solid ${C.border}`,
-        borderRadius: 10,
-        padding: "12px 14px",
-        marginBottom: 8
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        fontWeight: 700,
-        color: C.text,
-        marginBottom: 4
-      }
-    }, label), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        color: C.muted,
-        lineHeight: 1.6
-      }
-    }, desc)))),
+    }, "Intake, Classification, and Dispatch are the AI pipeline core \u2014 if any of these are not Active during service hours, jobs cannot flow. Pricing is handled by the MGE deterministic engine, not an AI agent. Comms failure means contractors aren't getting alerts. Payment failure means captured jobs don't trigger payouts."))),
     settings: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
       style: {
         fontSize: 14,
@@ -3858,7 +4135,7 @@ const TABS = [{
 }, {
   id: "agents",        label: "AI Agents",     icon: "🤖"
 }, {
-  id: "prompts",       label: "Prompts",       icon: "💬"
+  id: "catalog",       label: "Pricing Catalog", icon: "💰"
 }, {
   id: "settings",      label: "Settings",      icon: "⚙️"
 }, {
@@ -4194,7 +4471,9 @@ function Console() {
     metrics: SEED.metrics
   }), tab === "agents" && /*#__PURE__*/React.createElement(AgentsTab, {
     agents: agents
-  }), tab === "prompts" && /*#__PURE__*/React.createElement(PromptsTab, null), tab === "settings" && /*#__PURE__*/React.createElement(SettingsTab, {
+  }), tab === "catalog" && /*#__PURE__*/React.createElement(PricingCatalogTab, {
+    notify: notify
+  }), tab === "settings" && /*#__PURE__*/React.createElement(SettingsTab, {
     notify: notify
   }), tab === "guide" && /*#__PURE__*/React.createElement(UserGuideTab, null)))), /*#__PURE__*/React.createElement("style", null, `
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
