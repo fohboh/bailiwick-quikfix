@@ -7,7 +7,13 @@
 //   2. All fetch calls in the HTML point to /api/chat instead of api.anthropic.com
 //
 // Works for both bailiwick-vibe-website.html (Vibe chat widget)
-// and BailiwickQuikFix_v1.6.1.html (AI pipeline + intake + support)
+// and index.html (BailiwickQuikFix customer app — Claude classification + support chat).
+//
+// Architecture note: this proxy is pipeline-agnostic — it forwards whatever
+// messages + system prompt the caller sends. In BailiwickQuikFix, Claude is
+// called for CLASSIFICATION ONLY (job_type + scope_level). Pricing is a
+// deterministic MGE catalog lookup that happens in the browser AFTER Claude
+// returns; this proxy is not in the pricing path and never sees catalog data.
 
 export const config = { runtime: "edge" };
 
