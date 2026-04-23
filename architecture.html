@@ -182,19 +182,22 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
   <!-- ═══════════════════════════════════════════════════════ -->
   <div class="section-band" style="margin-top:8px;">
     <span class="section-band-num">Layer 2</span>
-    <span class="section-band-label">Generative AI Pipeline  ·  Anthropic Claude API  ·  Temp 0.1  ·  Max 1024 tokens</span>
+    <span class="section-band-label">Generative AI Pipeline  ·  Anthropic Claude API  ·  Classification only  ·  Temp 0.1  ·  Max 1024 tokens</span>
   </div>
   <div class="layer-row cols2" style="margin-bottom:8px;">
     <div class="card red">
-      <div class="card-title" style="color:#ff5252;">Stage 1 — Extract (Intake + Classification)</div>
-      <div class="card-body">Receives raw transcript. Classifies job_type (plumbing / electrical / drywall / appliance / door_window / other). Extracts specific_fix, urgency, estimated_minutes, dispatch_instructions. Assigns confidence score. Returns structured JSON.</div>
+      <div class="card-title" style="color:#ff5252;">Stage 1 — Classify (Intake + Classification)</div>
+      <div class="card-body">Receives raw transcript. Classifies job_type (plumbing / electrical / drywall / appliance / door_window / other) and scope_level (simple / standard / complex). Extracts specific_fix, urgency, estimated_minutes, dispatch_instructions. Assigns confidence score. Returns structured JSON. <strong>Does NOT price.</strong> Claude never sees the catalog.</div>
       <div class="card-tag">Prompt v2.4  ·  &lt;1.5s avg</div>
     </div>
-    <div class="card red">
-      <div class="card-title" style="color:#ff5252;">Stage 2 — Price</div>
-      <div class="card-body">Receives Stage 1 output. Looks up flat_rate_usd from catalog. Calculates QuikFix eligibility pre-conditions. Sets confidence score. Returns complete job ticket JSON including sla_target_minutes and questions_for_user[].</div>
-      <div class="card-tag">Prompt v1.8  ·  &lt;1.2s avg</div>
+    <div class="card" style="border-color:#22c55e55;background:#0a1a12;">
+      <div class="card-title" style="color:#22c55e;">Deterministic Pricing — not an LLM</div>
+      <div class="card-body">Takes Stage 1's classification + the customer's market (ZIP → market key). Looks up the flat rate from the versioned MGE catalog (market × job_type × scope_level). Applies fixed modifier chain (urgency surcharge, round-up). Returns the price. Same input always produces same output. Catalog is updated via quarterly CSV upload, not LLM inference.</div>
+      <div class="card-tag">Catalog 2026-Q2-v1.0  ·  &lt;10ms</div>
     </div>
+  </div>
+  <div class="flow-wide">
+    <span class="section-band-label" style="color:#22c55e;">↓ AI is advisory · MGE catalog is authoritative ·  Prices NEVER come from an LLM ↓</span>
   </div>
 
   <div class="flow-wide">
@@ -548,7 +551,7 @@ body{background:#050b14;font-family:'DM Sans',sans-serif;color:#e8f2ff;min-heigh
       <div class="int-card">
         <div class="int-icon">🔵</div>
         <div class="int-name">Anthropic Claude</div>
-        <div class="int-desc">claude-sonnet-4-20250514 · Stages 1 & 2 · Chatbot</div>
+        <div class="int-desc">claude-sonnet-4-20250514 · Classification only · Chatbot</div>
       </div>
       <div class="int-card">
         <div class="int-icon">🟢</div>
