@@ -22,27 +22,137 @@
   <script>var useState=React.useState,useRef=React.useRef,useEffect=React.useEffect;</script>
   <script>
 /* ═══════════════════════════════════════════════════════════
-   SYSTEM PROMPT
+   SYSTEM PROMPT — classification only.
+   AI does NOT price. AI does NOT see the catalog.
+   Price is looked up by the deterministic CATALOG below.
+   See CATALOG object for market × job_type × scope_level rates.
 ═══════════════════════════════════════════════════════════ */
-const SYSTEM_PROMPT = `You are Bailiwick Dispatch AI, the decision engine for BailiwickQuikFix Home Repairs.
-Convert the homeowner's spoken repair request into a structured, dispatch-ready job.
+const SYSTEM_PROMPT = `You are Bailiwick Dispatch AI, the classification engine for BailiwickQuikFix Home Repairs.
+Convert the homeowner's spoken repair request into a structured, dispatch-ready job classification.
+You classify only. You do NOT determine price. You do NOT know prices. Prices come from a deterministic catalog lookup applied AFTER your classification.
 Follow ALL rules. Return ONLY valid JSON, no extra text.
 
 RULES:
 1. Extract only what is explicitly stated. Never infer.
 2. Emergency if: water, gas, fire, electricity, sparking, flood, smoke → urgency="emergency"
-3. Classify as: plumbing | electrical | drywall | appliance | door_window | other
-4. FLAT RATES: faucet repair→89, toilet→79, drywall patch→69, outlet/switch→59, blind install→49, door lock→85, disposal reset→65, sink unclog→95, ceiling fan→125. Other: $75-125/hr.
+3. Classify job_type as: plumbing | electrical | drywall | appliance | door_window | handyman | other
+4. Classify scope_level as: simple | standard | complex
+   - simple   = single unit, no access issues, routine fix, < 45 minutes
+   - standard = typical job, minor complications possible, 45 min – 2 hours
+   - complex  = multiple units, unusual access, specialty parts, 2–4 hours
 5. urgency: routine | urgent | emergency
 6. parts_included: false unless stated
 7. requires_human_review: true if unclear, multiple issues, job_type=other, or <90% confident
 8. quikfix_eligible: true only if single standard repair, first-visit dispatchable, confidence≥90%, requires_human_review=false
 9. sla_target_minutes: 60 if quikfix_eligible, else 0
 
-Return: {"job_type":"plumbing|electrical|drywall|appliance|door_window|other","specific_fix":"string","urgency":"routine|urgent|emergency","estimated_minutes":integer,"flat_rate_usd":integer,"parts_included":boolean,"requires_human_review":boolean,"quikfix_eligible":boolean,"sla_target_minutes":integer,"questions_for_user":[],"dispatch_instructions":"string"}`;
+Return: {"job_type":"plumbing|electrical|drywall|appliance|door_window|handyman|other","specific_fix":"string","scope_level":"simple|standard|complex","urgency":"routine|urgent|emergency","estimated_minutes":integer,"parts_included":boolean,"requires_human_review":boolean,"quikfix_eligible":boolean,"sla_target_minutes":integer,"questions_for_user":[],"dispatch_instructions":"string","confidence":0.0}`;
+
+/* ═══════════════════════════════════════════════════════════
+   DETERMINISTIC PRICING CATALOG — market × job_type × scope_level
+   Version: 2026-Q2-v1.0
+   Source: Market research (Angi, HomeAdvisor, Thumbtack, HomeGuide 2026)
+           positioned at the 55th percentile of local market range.
+   Update cadence: quarterly, via CSV upload (see README).
+   This catalog is read at runtime ONLY by priceJob() below.
+   Claude never sees this data.
+═══════════════════════════════════════════════════════════ */
+const CATALOG_VERSION = "2026-Q2-v1.1";
+const CATALOG = {
+  austin: {
+    plumbing:    { simple:  85, standard: 145, complex: 225 },
+    electrical:  { simple:  79, standard: 135, complex: 215 },
+    drywall:     { simple:  65, standard: 125, complex: 195 },
+    appliance:   { simple:  89, standard: 149, complex: 235 },
+    door_window: { simple:  75, standard: 129, complex: 199 },
+    handyman:    { simple:  55, standard:  95, complex: 155 }
+  },
+  dallas: {
+    plumbing:    { simple:  89, standard: 149, complex: 235 },
+    electrical:  { simple:  85, standard: 139, complex: 219 },
+    drywall:     { simple:  69, standard: 129, complex: 199 },
+    appliance:   { simple:  95, standard: 155, complex: 245 },
+    door_window: { simple:  79, standard: 135, complex: 205 },
+    handyman:    { simple:  59, standard:  99, complex: 159 }
+  },
+  denver: {
+    plumbing:    { simple:  95, standard: 165, complex: 255 },
+    electrical:  { simple:  89, standard: 155, complex: 239 },
+    drywall:     { simple:  75, standard: 135, complex: 215 },
+    appliance:   { simple: 105, standard: 175, complex: 265 },
+    door_window: { simple:  85, standard: 145, complex: 225 },
+    handyman:    { simple:  65, standard: 109, complex: 175 }
+  },
+  nashville: {
+    plumbing:    { simple:  79, standard: 135, complex: 209 },
+    electrical:  { simple:  75, standard: 125, complex: 199 },
+    drywall:     { simple:  59, standard: 115, complex: 179 },
+    appliance:   { simple:  85, standard: 139, complex: 219 },
+    door_window: { simple:  69, standard: 119, complex: 185 },
+    handyman:    { simple:  49, standard:  89, complex: 145 }
+  }
+};
+
+/* Map a ZIP to its market key. Anything outside the four covered markets
+   returns null → job routes to human review (handled in priceJob). */
+function zipToMarket(zip) {
+  if (!zip || typeof zip !== "string") return null;
+  const p = zip.substring(0, 3);
+  if (["787", "786"].includes(p)) return "austin";
+  if (p === "752" || p === "751" || p === "750") return "dallas";
+  if (p === "802" || p === "801") return "denver";
+  if (p === "372") return "nashville";
+  return null;
+}
+
+/* priceJob — the deterministic pricing function.
+   Pure: same (classification, market) input ALWAYS produces same output.
+   No LLM. No randomness. No time-of-day surcharge.
+   Modifier chain is fixed: urgency → round up to $5. */
+function priceJob(classification, market) {
+  if (!market || !CATALOG[market]) {
+    return { price: null, reason: "market_not_covered", catalog_version: CATALOG_VERSION };
+  }
+  const jobType = classification.job_type;
+  const scope = classification.scope_level || "standard";
+  if (jobType === "other" || !CATALOG[market][jobType]) {
+    return { price: null, reason: "job_type_out_of_catalog", catalog_version: CATALOG_VERSION };
+  }
+  if (!CATALOG[market][jobType][scope]) {
+    return { price: null, reason: "scope_not_available", catalog_version: CATALOG_VERSION };
+  }
+  const baseRate = CATALOG[market][jobType][scope];
+  const modifiers = [];
+  let price = baseRate;
+
+  /* Urgency surcharge: +$45 flat for urgent/emergency */
+  if (classification.urgency === "urgent" || classification.urgency === "emergency") {
+    price += 45;
+    modifiers.push({ modifier: "urgency_surcharge", delta: 45 });
+  }
+
+  /* Round up to nearest $5 */
+  const rounded = Math.ceil(price / 5) * 5;
+  if (rounded !== price) {
+    modifiers.push({ modifier: "round_up_to_5", from: price, to: rounded });
+    price = rounded;
+  }
+
+  return {
+    price: price,
+    base_rate: baseRate,
+    market: market,
+    job_type: jobType,
+    scope_level: scope,
+    modifiers_applied: modifiers,
+    catalog_version: CATALOG_VERSION,
+    pricing_method: "deterministic_catalog_lookup"
+  };
+}
+
 const EMERGENCY_W = ["water", "gas", "fire", "electricity", "electric", "sparking", "flood", "smoke", "burning", "mold", "breaker"];
 const HAZARD_W = ["gas", "fire", "smoke", "burning", "sparking", "mold", "breaker"];
-const VALID_TYPES = ["plumbing", "electrical", "drywall", "appliance", "door_window", "other"];
+const VALID_TYPES = ["plumbing", "electrical", "drywall", "appliance", "door_window", "handyman", "other"];
 function validate(job, t) {
   const tl = t.toLowerCase(),
     fl = [];
@@ -1845,14 +1955,29 @@ function RequestScreen({
     setCertifying(false);
     setErr("");
     try {
-      // ── Claude Stage 2: Pricing ──
+      // ── Claude Stage: CLASSIFY ONLY (no pricing — Claude never sees the catalog) ──
       const r = await callClaude(q);
       const validated = validate(r, q);
+
+      // ── Deterministic pricing step: MGE catalog lookup, NOT an LLM call ──
+      // Same (classification, market) input always produces same output.
+      const market = zipToMarket(zip);
+      const priceResult = priceJob(validated, market);
+      if (priceResult.price === null) {
+        // Out of catalog or out of covered markets → force human review
+        validated.flat_rate_usd = null;
+        validated.requires_human_review = true;
+        validated.quikfix_eligible = false;
+        validated._pricing_fallback_reason = priceResult.reason;
+      } else {
+        validated.flat_rate_usd = priceResult.price;
+      }
+      validated._pricing = priceResult;  // Full pricing trace for MGE certification
 
       // ── MGE certification step (between Claude output and dispatch) ──
       setCertifying(true);
       // Pick a candidate pro matching the job type for certification scoring
-      const typeMap = { plumbing: ["plumbing"], electrical: ["electrical"], drywall: ["drywall"], door_window: ["door_window"], appliance: ["appliance"] };
+      const typeMap = { plumbing: ["plumbing"], electrical: ["electrical"], drywall: ["drywall"], door_window: ["door_window"], appliance: ["appliance"], handyman: ["handyman", "drywall", "door_window"] };
       const targetSpecs = typeMap[validated.job_type] || [];
       const candidate = PROS.find(function(p){ return p.specialties && p.specialties.some(function(s){ return targetSpecs.indexOf(s) !== -1; }); }) || PROS[0];
 
@@ -2681,7 +2806,7 @@ function RequestScreen({
       animation: "up 0.3s ease"
     }
   },
-    /* Two-stage indicator: Claude pricing → MGE certification */
+    /* Two-stage indicator: Classify (Claude) → MGE certification (catalog lookup + firewall) */
     /*#__PURE__*/React.createElement("div", {
       style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 20 }
     },
@@ -2727,7 +2852,7 @@ function RequestScreen({
     }, certifying ? "Certifying with MGE\u2026" : "Analyzing your request\u2026"),
     /*#__PURE__*/React.createElement("p", {
       style: { fontSize: 13, color: T.ink3 }
-    }, certifying ? "FohBoh Trust Firewall \u00b7 evaluating blocking conditions" : "Claude AI is pricing your job"),
+    }, certifying ? "FohBoh Trust Firewall \u00b7 evaluating blocking conditions" : "Classifying your request \u00b7 MGE catalog will price"),
     /* Demo-only: expanded view of what the MGE is doing */
     certifying && demo && /*#__PURE__*/React.createElement("div", {
       style: {
@@ -3210,6 +3335,7 @@ function ConfirmScreen({
     drywall: "⬜",
     appliance: "📦",
     door_window: "🚪",
+    handyman: "🛠️",
     other: "🛠"
   }[job.job_type] || "🛠"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -5409,8 +5535,8 @@ function HowItWorksScreen({
     }))
   }, {
     n: "02",
-    title: "AI prices your job instantly",
-    body: "Our AI classifies the repair, applies a flat rate from the catalog, and checks QuikFix eligibility — all in under 3 seconds.",
+    title: "MGE catalog prices your job instantly",
+    body: "Our AI classifies the repair, the MGE deterministic catalog looks up the flat rate for your market, and MGE certifies the result — all in under 3 seconds. Prices come from a market-validated catalog, never from an LLM.",
     icon: /*#__PURE__*/React.createElement("svg", {
       width: "24",
       height: "24",
