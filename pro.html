@@ -37,7 +37,7 @@ const P = {
   border: "#2E2E2E",
   text: "#F5F5F5",
   sub: "#A0A0A0",
-  muted: "#5A5A5A",
+  muted: "#8A8A8A",
   red: "#D32F2F",
   redL: "#FF5252",
   redBg: "#1A0000",
@@ -1598,9 +1598,13 @@ function IncomingJobScreen({
   onDecline
 }) {
   const [remaining, setRemaining] = useState(INCOMING_JOB.timeLimit);
+  const declinedRef = useRef(false);
   useEffect(() => {
     if (remaining <= 0) {
-      onDecline();
+      if (!declinedRef.current) {
+        declinedRef.current = true;
+        onDecline();
+      }
       return;
     }
     const t = setTimeout(() => setRemaining(r => r - 1), 1000);
