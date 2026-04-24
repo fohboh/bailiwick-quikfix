@@ -28,6 +28,106 @@
 
 const font = "'DM Sans', -apple-system, sans-serif";
 
+/* ═══════════════════════════════════════════════════════════
+   INTERNATIONALIZATION — EN / ES
+   Vendor-facing UI only. Classifier metadata, job_type codes,
+   and MGE governance fields remain English (machine-readable).
+═══════════════════════════════════════════════════════════ */
+const TRANSLATIONS = {
+  en: {
+    // Status badge
+    status_online: "ONLINE", status_offline: "OFFLINE",
+    status_certified: "CERTIFIED", status_warning: "WARNING", status_blocked: "BLOCKED",
+    // Bottom tabs
+    tab_home: "Home", tab_chat: "Chat", tab_jobs: "Jobs", tab_account: "Account",
+    // Dashboard stat tiles
+    stat_this_week: "This week", stat_pending: "Pending", stat_jobs_today: "Jobs today",
+    // Status area
+    watching_jobs: "Watching for jobs near",
+    dispatch_radius: "30-min dispatch radius active",
+    go_online: "Go Online", go_offline: "Go Offline",
+    // Simulate button
+    sim_incoming: "Simulate incoming job \u2192",
+    // Trust Score panel
+    trust_score_title: "Trust Score", trust_score_subtitle: "Your dispatch eligibility",
+    all_blocking_green: "All 4 blocking components green \u00b7 dispatch tier:",
+    resolve_blocking: "Resolve the blocking condition to restore dispatch eligibility.",
+    blocked_cannot_receive: "BLOCKED BY MGE \u2014 you cannot receive jobs",
+    cannot_priced_dispatched: "Cannot be priced or dispatched",
+    // Trust Score components (the 6)
+    tc_identity: "Identity", tc_background: "Background Check",
+    tc_coi: "Certificate of Insurance", tc_license: "License",
+    tc_performance: "Performance", tc_rating: "Customer Rating",
+    // Incoming job
+    new_job_request: "New job request \u2014 respond in time",
+    auto_declines: "Auto-declines if no response",
+    accept_job: "Accept Job", decline: "Decline",
+    distance: "Distance", estimated_earnings: "Estimated earnings",
+    no_phone_shared: "No phone number shared", in_app_messaging: "In-app messaging only",
+    // Active job
+    en_route: "En Route", arrived: "Arrived", mark_arrived: "Mark Arrived", stage_enroute_sub: "Head to customer location", stage_arrived_sub: "Let the customer know you&apos;re here", stage_inprogress_sub: "Job underway", stage_complete: "Job Complete", stage_complete_sub: "Upload after photo to finish", stage_inprogress: "In Progress",
+    mark_complete: "Mark Complete", navigate: "Navigate",
+    navigate_apple: "Navigate with Apple Maps", navigate_google: "Navigate with Google Maps",
+    apple_maps: "Apple Maps", google_maps: "Google Maps",
+    encrypted_inapp: "Encrypted \u00b7 in-app only \u00b7 no phone numbers shared",
+    customer_tracking: "Customers see this for tracking",
+    // Job complete
+    job_complete: "Job Complete",
+    payment_of: "Payment of",
+    direct_deposit: "Direct deposit arrives within 24 hours", being_processed: " is being processed",
+    back_dashboard: "Back to Dashboard",
+    // Account
+    account: "Account", sign_out: "Sign out",
+    // Misc
+    verified: "Verified",
+    // Chat placeholders
+    no_messages: "No active conversations",
+    messages_appear: "Messages from customers appear here during active jobs"
+  },
+  es: {
+    status_online: "EN L\u00cdNEA", status_offline: "FUERA DE L\u00cdNEA",
+    status_certified: "CERTIFICADO", status_warning: "ADVERTENCIA", status_blocked: "BLOQUEADO",
+    tab_home: "Inicio", tab_chat: "Chat", tab_jobs: "Trabajos", tab_account: "Cuenta",
+    stat_this_week: "Esta semana", stat_pending: "Pendiente", stat_jobs_today: "Trabajos hoy",
+    watching_jobs: "Buscando trabajos cerca de",
+    dispatch_radius: "radio de despacho de 30 minutos activo",
+    go_online: "Conectarse", go_offline: "Desconectarse",
+    sim_incoming: "Simular trabajo entrante \u2192",
+    trust_score_title: "Puntaje de Confianza",
+    trust_score_subtitle: "Tu elegibilidad para despacho",
+    all_blocking_green: "Los 4 componentes de bloqueo est\u00e1n en verde \u00b7 nivel de despacho:",
+    resolve_blocking: "Resuelve la condici\u00f3n de bloqueo para restaurar la elegibilidad.",
+    blocked_cannot_receive: "BLOQUEADO POR MGE \u2014 no puedes recibir trabajos",
+    cannot_priced_dispatched: "No puede ser cotizado ni despachado",
+    tc_identity: "Identidad", tc_background: "Verificaci\u00f3n de Antecedentes",
+    tc_coi: "Certificado de Seguro", tc_license: "Licencia",
+    tc_performance: "Desempe\u00f1o", tc_rating: "Calificaci\u00f3n del Cliente",
+    new_job_request: "Nueva solicitud de trabajo \u2014 responde a tiempo",
+    auto_declines: "Se rechaza autom\u00e1ticamente si no respondes",
+    accept_job: "Aceptar Trabajo", decline: "Rechazar",
+    distance: "Distancia", estimated_earnings: "Ganancia estimada",
+    no_phone_shared: "No se comparte tel\u00e9fono",
+    in_app_messaging: "Solo mensajer\u00eda dentro de la app",
+    en_route: "En Camino", arrived: "Llegu\u00e9",
+    mark_arrived: "Marcar Llegada", mark_complete: "Marcar Completado",
+    navigate: "Navegar",
+    navigate_apple: "Navegar con Apple Maps", navigate_google: "Navegar con Google Maps",
+    apple_maps: "Apple Maps", google_maps: "Google Maps",
+    encrypted_inapp: "Cifrado \u00b7 solo en la app \u00b7 sin tel\u00e9fonos compartidos",
+    customer_tracking: "Los clientes ven esto para rastreo",
+    job_complete: "Trabajo Completado",
+    payment_of: "Pago de",
+    direct_deposit: "El dep\u00f3sito directo llega en 24 horas",
+    back_dashboard: "Volver al Panel",
+    account: "Cuenta", sign_out: "Cerrar sesi\u00f3n",
+    verified: "Verificado",
+    no_messages: "Sin conversaciones activas",
+    messages_appear: "Los mensajes de clientes aparecen aqu\u00ed durante trabajos activos"
+  }
+};
+const LangContext = React.createContext({ lang: "en", setLang: function(){}, tr: function(k){ return k; } });
+const useLang = function() { return React.useContext(LangContext); };
+
 /* ── Design tokens — dark, high-contrast, field-ready ── */
 const P = {
   bg: "#0A0A0A",
@@ -597,15 +697,26 @@ function GhostBtn({
 function StatusBadge({
   status
 }) {
-  const M = {
-    online: [P.green, "● Online"],
-    busy: [P.amber, "● On Job"],
-    offline: [P.muted, "○ Offline"],
-    enroute: [P.qfx, "→ En Route"],
-    arrived: [P.blue, "◎ Arrived"],
-    inprogress: [P.amber, "⚙ In Progress"],
-    complete: [P.green, "✓ Complete"]
+  const { tr, lang } = useLang();
+  const EN = {
+    online: [P.green, "\u25CF Online"],
+    busy: [P.amber, "\u25CF On Job"],
+    offline: [P.muted, "\u25CB Offline"],
+    enroute: [P.qfx, "\u2192 En Route"],
+    arrived: [P.blue, "\u25CE Arrived"],
+    inprogress: [P.amber, "\u2699 In Progress"],
+    complete: [P.green, "\u2713 Complete"]
   };
+  const ES = {
+    online: [P.green, "\u25CF En l\u00EDnea"],
+    busy: [P.amber, "\u25CF En trabajo"],
+    offline: [P.muted, "\u25CB Desconectado"],
+    enroute: [P.qfx, "\u2192 En camino"],
+    arrived: [P.blue, "\u25CE Llegu\u00E9"],
+    inprogress: [P.amber, "\u2699 En progreso"],
+    complete: [P.green, "\u2713 Completado"]
+  };
+  const M = lang === "es" ? ES : EN;
   const [color, label] = M[status] || [P.muted, status];
   return /*#__PURE__*/React.createElement("span", {
     style: {
@@ -945,6 +1056,7 @@ function MiniMap({
 function OnboardingScreen({
   onDone
 }) {
+  const { lang, setLang } = useLang();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     name: "",
@@ -962,8 +1074,8 @@ function OnboardingScreen({
     [k]: v
   }));
   const STEPS = [{
-    title: "Welcome to\nBailiwickQuikFix",
-    sub: "Earn $65–125/hr. Jobs come to you.",
+    title: lang === "es" ? "Bienvenido a\nBailiwickQuikFix" : "Welcome to\nBailiwickQuikFix",
+    sub: lang === "es" ? "Gana $65\u2013125/hr. Los trabajos llegan a ti." : "Earn $65\u2013125/hr. Jobs come to you.",
     type: "intro"
   }, {
     title: "Your info",
@@ -1118,7 +1230,47 @@ function OnboardingScreen({
       margin: 0,
       textAlign: s.type === "intro" ? "center" : "left"
     }
-  }, s.sub)), s.type === "form" && s.fields && /*#__PURE__*/React.createElement("div", {
+  }, s.sub), s.type === "intro" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 32,
+      display: "flex",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 100,
+      padding: 4,
+      boxShadow: "0 2px 12px rgba(0,0,0,0.3)"
+    },
+    role: "group",
+    "aria-label": "Language selector"
+  }, [["en", "English"], ["es", "Spanish"]].map(function(pair){
+    const code = pair[0];
+    const label = pair[1];
+    const active = lang === code;
+    return /*#__PURE__*/React.createElement("button", {
+      key: code,
+      onClick: function(){ setLang(code); },
+      "aria-pressed": active,
+      style: {
+        background: active ? P.green : "transparent",
+        color: active ? P.bg : P.sub,
+        border: "none",
+        borderRadius: 100,
+        padding: "10px 24px",
+        fontSize: 14,
+        fontWeight: 700,
+        letterSpacing: 0.3,
+        cursor: "pointer",
+        fontFamily: font,
+        transition: "all 0.2s"
+      }
+    }, label);
+  })))), s.type === "form" && s.fields && /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1
     }
@@ -1571,7 +1723,7 @@ function OnboardingScreen({
       margin: "0 auto"
     }
   }, !isLast ? /*#__PURE__*/React.createElement(BigBtn, {
-    label: step === 0 ? "Get Started →" : "Continue →",
+    label: step === 0 ? (lang === "es" ? "Comenzar \u2192" : "Get Started \u2192") : (lang === "es" ? "Continuar \u2192" : "Continue \u2192"),
     color: P.green,
     onClick: () => setStep(s => s + 1)
   }) : /*#__PURE__*/React.createElement(BigBtn, {
@@ -1585,7 +1737,7 @@ function OnboardingScreen({
       textAlign: "center",
       marginTop: 10
     }
-  }, "Background check \xB7 License verification \xB7 $1M COI required"))), /*#__PURE__*/React.createElement("style", null, `
+  }, lang === "es" ? "Verificaci\u00f3n de antecedentes \u00b7 verificaci\u00f3n de licencia \u00b7 seguro COI $1M requerido" : "Background check \xB7 License verification \xB7 $1M COI required"))), /*#__PURE__*/React.createElement("style", null, `
         @keyframes btnPulse{0%,100%{box-shadow:0 8px 32px #22C55E55}50%{box-shadow:0 8px 48px #22C55E99}}
       `));
 }
@@ -1597,6 +1749,7 @@ function IncomingJobScreen({
   onAccept,
   onDecline
 }) {
+  const { tr } = useLang();
   const [remaining, setRemaining] = useState(INCOMING_JOB.timeLimit);
   const declinedRef = useRef(false);
   useEffect(() => {
@@ -1642,7 +1795,7 @@ function IncomingJobScreen({
       color: P.sub,
       marginTop: 2
     }
-  }, "New job request \u2014 respond in time")), /*#__PURE__*/React.createElement("div", {
+  }, tr("new_job_request"))), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       maxWidth: 480,
@@ -1664,7 +1817,7 @@ function IncomingJobScreen({
       color: P.sub,
       marginTop: 10
     }
-  }, "Auto-declines if no response")), /*#__PURE__*/React.createElement(Card, {
+  }, tr("auto_declines"))), /*#__PURE__*/React.createElement(Card, {
     accent: urgencyColor
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1792,7 +1945,7 @@ function IncomingJobScreen({
       color: P.muted,
       textAlign: "right"
     }
-  }, "No phone number shared", /*#__PURE__*/React.createElement("br", null), "In-app messaging only")))), /*#__PURE__*/React.createElement("div", {
+  }, tr("no_phone_shared"), /*#__PURE__*/React.createElement("br", null), tr("in_app_messaging"))))), /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
       bottom: 0,
@@ -1812,12 +1965,12 @@ function IncomingJobScreen({
       gap: 10
     }
   }, /*#__PURE__*/React.createElement(GhostBtn, {
-    label: "Decline",
+    label: tr("decline"),
     onClick: onDecline,
     color: P.muted
   }), /*#__PURE__*/React.createElement(BigBtn, {
-    label: `Accept · $${INCOMING_JOB.rate}`,
-    sub: `${remaining}s remaining`,
+    label: tr("accept_job") + ` \u00b7 $${INCOMING_JOB.rate}`,
+    sub: `${remaining}s`,
     color: P.green,
     onClick: onAccept,
     pulse: remaining <= 10
@@ -1830,6 +1983,7 @@ function IncomingJobScreen({
 function ActiveJobScreen({
   onComplete
 }) {
+  const { tr } = useLang();
   const [stage, setStage] = useState("enroute");
   const [msgs, setMsgs] = useState([{
     from: "customer",
@@ -1850,20 +2004,20 @@ function ActiveJobScreen({
   }, [msgs, tab]);
   const STAGES = [{
     id: "enroute",
-    label: "En Route",
-    sub: "Head to customer location"
+    label: tr("en_route"),
+    sub: tr("stage_enroute_sub")
   }, {
     id: "arrived",
-    label: "Arrived",
-    sub: "Let the customer know you're here"
+    label: tr("arrived"),
+    sub: tr("stage_arrived_sub")
   }, {
     id: "inprogress",
-    label: "In Progress",
-    sub: "Job underway"
+    label: tr("stage_inprogress"),
+    sub: tr("stage_inprogress_sub")
   }, {
     id: "complete",
-    label: "Job Complete",
-    sub: "Upload after photo to finish"
+    label: tr("stage_complete"),
+    sub: tr("stage_complete_sub")
   }];
   const stageIdx = STAGES.findIndex(s => s.id === stage);
   const nextStage = STAGES[stageIdx + 1];
@@ -2156,7 +2310,7 @@ function ActiveJobScreen({
       color: P.text,
       cursor: "pointer"
     }
-  }, "Apple Maps"), /*#__PURE__*/React.createElement("button", {
+  }, tr("apple_maps")), /*#__PURE__*/React.createElement("button", {
     style: {
       flex: 1,
       background: P.lift,
@@ -2169,7 +2323,7 @@ function ActiveJobScreen({
       color: P.text,
       cursor: "pointer"
     }
-  }, "Google Maps"))))), tab === "chat" && /*#__PURE__*/React.createElement("div", {
+  }, tr("google_maps")))))), tab === "chat" && /*#__PURE__*/React.createElement("div", {
     style: {
       animation: "up 0.2s ease"
     }
@@ -2297,6 +2451,7 @@ function DashboardScreen({
   onIncomingJob,
   onStatusChange
 }) {
+  const { lang, setLang, tr } = useLang();
   const [status, setStatus] = useState("online");
   const [tab, setTab] = useState("home");
   function toggleStatus() {
@@ -2369,7 +2524,7 @@ function DashboardScreen({
         color: P.muted,
         marginTop: 2
       }
-    }, "This week")), /*#__PURE__*/React.createElement("div", {
+    }, tr("stat_this_week"))), /*#__PURE__*/React.createElement("div", {
       style: {
         width: 1,
         background: P.border
@@ -2390,7 +2545,7 @@ function DashboardScreen({
         color: P.muted,
         marginTop: 2
       }
-    }, "Pending")), /*#__PURE__*/React.createElement("div", {
+    }, tr("stat_pending"))), /*#__PURE__*/React.createElement("div", {
       style: {
         width: 1,
         background: P.border
@@ -2411,7 +2566,7 @@ function DashboardScreen({
         color: P.muted,
         marginTop: 2
       }
-    }, "Jobs today")))), /*#__PURE__*/React.createElement("div", {
+    }, tr("stat_jobs_today"))))), /*#__PURE__*/React.createElement("div", {
       style: {
         background: status === "online" ? P.green + "18" : P.lift,
         border: `1px solid ${status === "online" ? P.green + "44" : P.border}`,
@@ -2490,7 +2645,7 @@ function DashboardScreen({
           fontWeight: 700
         }
       }, "DEMO"),
-      "Simulate incoming job \u2192"
+      tr("sim_incoming")
     ),
     /*#__PURE__*/React.createElement("div", {
       style: {
@@ -2596,9 +2751,9 @@ function DashboardScreen({
         },
           /*#__PURE__*/React.createElement("span", { style: { fontSize: 14, flexShrink: 0 } }, "\ud83d\uded1"),
           /*#__PURE__*/React.createElement("div", null,
-            /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: P.redL, marginBottom: 2 } }, "BLOCKED BY MGE \u2014 you cannot receive jobs"),
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, fontWeight: 800, color: P.redL, marginBottom: 2 } }, tr("blocked_cannot_receive")),
             /*#__PURE__*/React.createElement("div", { style: { fontSize: 11, color: P.redL, lineHeight: 1.5 } }, mge.blockingReasons.join(" \u00b7 ")),
-            /*#__PURE__*/React.createElement("div", { style: { fontSize: 10, color: P.muted, marginTop: 4 } }, "Resolve the blocking condition to restore dispatch eligibility.")
+            /*#__PURE__*/React.createElement("div", { style: { fontSize: 10, color: P.muted, marginTop: 4 } }, tr("resolve_blocking"))
           )
         ),
         /* Warning banner (non-blocking amber) */
@@ -2615,7 +2770,7 @@ function DashboardScreen({
         !mge.anyBlocked && mge.warnings.length === 0 && /*#__PURE__*/React.createElement("div", {
           style: { marginTop: 10, fontSize: 10, color: P.muted, textAlign: "center", fontFamily: "monospace" }
         },
-          "All 4 blocking components green \u00b7 dispatch tier: ",
+          tr("all_blocking_green") + " ",
           /*#__PURE__*/React.createElement("span", { style: { color: mge.dispatchTier === "auto" ? P.green : P.amber, fontWeight: 800 } }, mge.dispatchTier.toUpperCase())
         ),
         /* Footer formula */
@@ -2693,7 +2848,7 @@ function DashboardScreen({
         color: P.green,
         fontWeight: 600
       }
-    }, "Watching for jobs near ", ME.zip, "\u2026 \xB7 30-min dispatch radius active")),
+    }, tr("watching_jobs") + " ", ME.zip, "\u2026 \xB7 " + tr("dispatch_radius"))),
     account: /*#__PURE__*/React.createElement("div", {
       style: {
         animation: "up 0.3s ease"
@@ -2894,6 +3049,45 @@ function DashboardScreen({
     status: status
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      background: P.card,
+      border: `1px solid ${P.border}`,
+      borderRadius: 100,
+      padding: 2,
+      fontFamily: font
+    },
+    role: "group",
+    "aria-label": "Language selector"
+  }, ["en", "es"].map(function(code){
+    const active = lang === code;
+    return /*#__PURE__*/React.createElement("button", {
+      key: code,
+      onClick: function(){ setLang(code); },
+      "aria-pressed": active,
+      "aria-label": code === "en" ? "English" : "Espa\u00f1ol",
+      style: {
+        background: active ? P.text : "transparent",
+        color: active ? P.bg : P.muted,
+        border: "none",
+        borderRadius: 100,
+        padding: "3px 9px",
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: 0.5,
+        cursor: "pointer",
+        fontFamily: font,
+        transition: "all 0.15s"
+      }
+    }, code === "en" ? "EN" : "ES");
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
       fontSize: 13,
       fontWeight: 700,
       color: P.text,
@@ -2912,7 +3106,7 @@ function DashboardScreen({
       textAlign: "right",
       letterSpacing: 1
     }
-  }, "PRO"))), /*#__PURE__*/React.createElement("div", {
+  }, "PRO")))), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       maxWidth: 480,
@@ -2940,7 +3134,7 @@ function DashboardScreen({
     }
   }, [{
     id: "home",
-    label: "Home",
+    label: tr("tab_home"),
     icon: /*#__PURE__*/React.createElement("svg", {
       width: "20",
       height: "20",
@@ -2954,7 +3148,7 @@ function DashboardScreen({
     }))
   }, {
     id: "account",
-    label: "Account",
+    label: tr("tab_account"),
     icon: /*#__PURE__*/React.createElement("svg", {
       width: "20",
       height: "20",
@@ -3010,6 +3204,7 @@ function DashboardScreen({
 function JobCompleteScreen({
   onDone
 }) {
+  const { tr } = useLang();
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
@@ -3045,24 +3240,24 @@ function JobCompleteScreen({
       letterSpacing: -1,
       margin: "0 0 10px"
     }
-  }, "Job Complete"), /*#__PURE__*/React.createElement("p", {
+  }, tr("job_complete")), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 16,
       color: P.sub,
       marginBottom: 6,
       lineHeight: 1.6
     }
-  }, "Payment of ", /*#__PURE__*/React.createElement("strong", {
+  }, tr("payment_of") + " ", /*#__PURE__*/React.createElement("strong", {
     style: {
       color: P.text
     }
-  }, "$", ACTIVE_JOB.total), " is being processed"), /*#__PURE__*/React.createElement("p", {
+  }, "$", ACTIVE_JOB.total), tr("being_processed")), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 13,
       color: P.muted,
       marginBottom: 36
     }
-  }, "Direct deposit arrives within 24 hours"), /*#__PURE__*/React.createElement("div", {
+  }, tr("direct_deposit")), /*#__PURE__*/React.createElement("div", {
     style: {
       background: P.card,
       border: `1px solid ${P.border}`,
@@ -3097,7 +3292,7 @@ function JobCompleteScreen({
       maxWidth: 360
     }
   }, /*#__PURE__*/React.createElement(BigBtn, {
-    label: "Back to Dashboard",
+    label: tr("back_dashboard"),
     color: P.green,
     onClick: onDone
   })));
@@ -3108,8 +3303,12 @@ function JobCompleteScreen({
 ═══════════════════════════════════════════════════════════ */
 function ProApp() {
   const [screen, setScreen] = useState("onboarding"); // onboarding | dashboard | incoming | active | complete
+  const [lang, setLang] = useState("en");
+  const tr = React.useCallback(function(k){ return (TRANSLATIONS[lang] && TRANSLATIONS[lang][k]) || TRANSLATIONS.en[k] || k; }, [lang]);
 
-  return /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement(LangContext.Provider, {
+    value: { lang: lang, setLang: setLang, tr: tr }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: P.bg,
       minHeight: "100vh"
@@ -3137,7 +3336,7 @@ function ProApp() {
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2E2E2E;border-radius:2px;}
         input::placeholder{color:#5A5A5A;}
-      `));
+      `)));
 }
 
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ProApp));
