@@ -2149,7 +2149,13 @@ function RequestScreen({
 
       // ── Deterministic pricing step: MGE catalog lookup, NOT an LLM call ──
       // Same (classification, market) input always produces same output.
-      const market = zipToMarket(zip);
+      // Demo-mode fallback: if the reviewer typed an uncovered ZIP (e.g. 12345),
+      // we remap to Dallas so the end-to-end quote flow can be demonstrated.
+      // Production behavior (demo=false) still honors the catalog's market_not_covered path.
+      let market = zipToMarket(zip);
+      if (!market && demo) {
+        market = "dallas";
+      }
       const priceResult = priceJob(validated, market);
       if (priceResult.price === null) {
         // Out of catalog or out of covered markets → force human review
