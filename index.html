@@ -49,6 +49,135 @@ RULES:
 Return: {"job_type":"plumbing|electrical|drywall|appliance|door_window|handyman|other","specific_fix":"string","scope_level":"simple|standard|complex","urgency":"routine|urgent|emergency","estimated_minutes":integer,"parts_included":boolean,"requires_human_review":boolean,"quikfix_eligible":boolean,"sla_target_minutes":integer,"questions_for_user":[],"dispatch_instructions":"string","confidence":0.0}`;
 
 /* ═══════════════════════════════════════════════════════════
+   INTERNATIONALIZATION — EN / ES
+   Customer-facing strings only. Classifier output remains in English
+   (JSON keys/values are machine-readable and must not be translated).
+═══════════════════════════════════════════════════════════ */
+const TRANSLATIONS = {
+  en: {
+    // Nav
+    why_us: "Why Us", live: "LIVE", back: "Back",
+    // BottomTabs
+    tab_home: "Home", tab_commercial: "Commercial", tab_account: "Account", tab_job: "My Job",
+    // Home hero
+    pros_standing_by: "Pros standing by now",
+    what_needs_1: "What needs", what_needs_2: "fixing?",
+    hero_sub_1: "A vetted pro at your door", hero_sub_2: "in under an hour.",
+    hero_ai: "Our AI matches you with a certified pro in seconds.",
+    // ZIP
+    zip_code: "ZIP Code", zip_placeholder: "e.g. 78701",
+    zip_err_area: "Not in our service area yet.",
+    or_tap_city: "Or tap your city",
+    demo_mode: "Demo mode", demo_active: "Demo · any ZIP · MGE visible",
+    // Main flow
+    change_location: "Change location",
+    prefer_describe: "Prefer to just describe it?",
+    chat_ai_sub: "Chat with our AI dispatcher instead",
+    chat_with_ai: "Chat with AI \u2192",
+    mic_listening: "Listening\u2026 tap to stop",
+    mic_loading: "Getting your price\u2026",
+    mic_prompt: "Tap the button and describe your repair",
+    mic_tap_stop: "TAP TO STOP", mic_speak: "SPEAK",
+    mic_speak_clearly: "Speak clearly into your microphone\u2026",
+    mic_example: "Example: \"My faucet won't stop dripping\" or \"Outlet stopped working\"",
+    or_browse: "OR BROWSE BY CATEGORY",
+    select_apply: "select all that apply",
+    selected: "selected", clear: "Clear",
+    describe_words: "Or describe it in your own words\u2026",
+    analyzing: "Analyzing your request\u2026",
+    certifying: "Certifying with MGE\u2026",
+    classifying_sub: "Classifying your request \u00b7 MGE catalog will price",
+    firewall_sub: "FohBoh Trust Firewall \u00b7 evaluating blocking conditions",
+    quikfix_arrival: "QuikFix arrival <60 min for eligible jobs \u00b7 covered ZIP codes \u00b7 7am\u20139pm",
+    // AI chat
+    ai_greeting: "Hi! What needs fixing today? Just tell me in your own words \u2014 I'll take it from there.",
+    or_tap_common: "Or tap a common issue:",
+    common_1: "My faucet won't stop dripping",
+    common_2: "Outlet stopped working",
+    common_3: "Toilet keeps running",
+    common_4: "Garbage disposal jammed",
+    common_5: "Front door lock is stuck",
+    common_6: "Drywall hole in wall",
+    ai_dispatch_ready: "Got it \u2014 I have everything I need. Getting your price now\u2026",
+    ai_error: "Something went wrong. Can you type what needs fixing?",
+    // Categories
+    cat_plumbing: "Plumbing", cat_electrical: "Electrical", cat_drywall: "Drywall",
+    cat_doors: "Doors", cat_appliance: "Appliances", cat_handyman: "Handyman",
+    // Mic errors
+    voice_ios_err: "Voice requires Safari on iOS 14.5+ served over HTTPS.",
+    voice_unsupported: "Voice not supported. Try Chrome, Edge, or Safari.",
+    voice_https: "Voice input needs HTTPS. Use the text box or category list below.",
+    mic_blocked: "Mic blocked \u2014 allow access in your browser/device settings.",
+    no_speech: "Nothing heard. Tap again and speak clearly.",
+    audio_capture: "No microphone found. Type your repair instead.",
+    mic_error: "Mic error. Type your repair below.",
+    mic_start_fail: "Couldn't start mic. Type your repair below."
+  },
+  es: {
+    // Nav
+    why_us: "\u00bfPor qu\u00e9 nosotros?", live: "EN VIVO", back: "Atr\u00e1s",
+    // BottomTabs
+    tab_home: "Inicio", tab_commercial: "Comercial", tab_account: "Cuenta", tab_job: "Mi Trabajo",
+    // Home hero
+    pros_standing_by: "Profesionales disponibles",
+    what_needs_1: "\u00bfQu\u00e9 necesita", what_needs_2: "reparaci\u00f3n?",
+    hero_sub_1: "Un profesional verificado",
+    hero_sub_2: "en menos de una hora.",
+    hero_ai: "Nuestra IA te conecta con un pro certificado en segundos.",
+    // ZIP
+    zip_code: "C\u00f3digo Postal", zip_placeholder: "ej. 78701",
+    zip_err_area: "A\u00fan no atendemos en su \u00e1rea.",
+    or_tap_city: "O toca tu ciudad",
+    demo_mode: "Modo demo", demo_active: "Demo \u00b7 cualquier c\u00f3digo \u00b7 MGE visible",
+    // Main flow
+    change_location: "Cambiar ubicaci\u00f3n",
+    prefer_describe: "\u00bfPrefieres describirlo t\u00fa mismo?",
+    chat_ai_sub: "Habla con nuestro despachador IA",
+    chat_with_ai: "Chatear con IA \u2192",
+    mic_listening: "Escuchando\u2026 toca para detener",
+    mic_loading: "Obteniendo tu precio\u2026",
+    mic_prompt: "Toca el bot\u00f3n y describe tu reparaci\u00f3n",
+    mic_tap_stop: "TOCA PARA DETENER", mic_speak: "HABLAR",
+    mic_speak_clearly: "Habla claro al micr\u00f3fono\u2026",
+    mic_example: "Ejemplo: \"Mi grifo no deja de gotear\" o \"El enchufe no funciona\"",
+    or_browse: "O EXPLORA POR CATEGOR\u00cdA",
+    select_apply: "selecciona los que apliquen",
+    selected: "seleccionados", clear: "Borrar",
+    describe_words: "O descr\u00edbelo en tus propias palabras\u2026",
+    analyzing: "Analizando tu solicitud\u2026",
+    certifying: "Certificando con MGE\u2026",
+    classifying_sub: "Clasificando tu solicitud \u00b7 MGE catalog valorar\u00e1",
+    firewall_sub: "FohBoh Trust Firewall \u00b7 evaluando condiciones",
+    quikfix_arrival: "Llegada QuikFix <60 min para trabajos elegibles \u00b7 c\u00f3digos cubiertos \u00b7 7am\u20139pm",
+    // AI chat
+    ai_greeting: "\u00a1Hola! \u00bfQu\u00e9 necesita reparaci\u00f3n hoy? Cu\u00e9ntamelo en tus propias palabras \u2014 yo me encargo del resto.",
+    or_tap_common: "O toca un problema com\u00fan:",
+    common_1: "Mi grifo no deja de gotear",
+    common_2: "El enchufe no funciona",
+    common_3: "El inodoro sigue corriendo",
+    common_4: "El triturador est\u00e1 atascado",
+    common_5: "La cerradura est\u00e1 atascada",
+    common_6: "Agujero en la pared",
+    ai_dispatch_ready: "Listo \u2014 tengo todo lo que necesito. Obteniendo tu precio\u2026",
+    ai_error: "Algo sali\u00f3 mal. \u00bfPuedes escribir qu\u00e9 necesita reparaci\u00f3n?",
+    // Categories
+    cat_plumbing: "Plomer\u00eda", cat_electrical: "Electricidad", cat_drywall: "Tablaroca",
+    cat_doors: "Puertas", cat_appliance: "Electrodom\u00e9sticos", cat_handyman: "Reparaciones",
+    // Mic errors
+    voice_ios_err: "La voz requiere Safari en iOS 14.5+ con HTTPS.",
+    voice_unsupported: "Voz no soportada. Prueba Chrome, Edge o Safari.",
+    voice_https: "La entrada por voz necesita HTTPS. Usa texto o categor\u00edas.",
+    mic_blocked: "Micr\u00f3fono bloqueado \u2014 permite el acceso en la configuraci\u00f3n.",
+    no_speech: "No se escuch\u00f3 nada. Toca de nuevo y habla claro.",
+    audio_capture: "No se encontr\u00f3 micr\u00f3fono. Escribe la reparaci\u00f3n.",
+    mic_error: "Error de micr\u00f3fono. Escribe la reparaci\u00f3n abajo.",
+    mic_start_fail: "No se pudo iniciar el micr\u00f3fono. Escribe abajo."
+  }
+};
+const LangContext = React.createContext({ lang: "en", setLang: function(){}, tr: function(k){ return k; } });
+const useLang = function() { return React.useContext(LangContext); };
+
+/* ═══════════════════════════════════════════════════════════
    DETERMINISTIC PRICING CATALOG — market × job_type × scope_level
    Version: 2026-Q2-v1.0
    Source: Market research (Angi, HomeAdvisor, Thumbtack, HomeGuide 2026)
@@ -287,27 +416,39 @@ const PROS = [{
 const CATEGORIES = [{
   id: "plumbing",
   label: "Plumbing",
-  repairs: ["Faucet dripping", "Toilet running", "Sink draining slowly", "Disposal won't spin", "Sink unclog", "Toilet clogged", "Low water pressure", "Water heater issue", "Leak under sink", "Outdoor hose bib leaking"]
+  label_es: "Plomer\u00eda",
+  repairs: ["Faucet dripping", "Toilet running", "Sink draining slowly", "Disposal won't spin", "Sink unclog", "Toilet clogged", "Low water pressure", "Water heater issue", "Leak under sink", "Outdoor hose bib leaking"],
+  repairs_es: ["Grifo goteando", "Inodoro sigue corriendo", "Fregadero drena lento", "Triturador no gira", "Desatascar fregadero", "Inodoro tapado", "Presi\u00f3n de agua baja", "Problema del calentador", "Fuga bajo el fregadero", "Fuga en la llave exterior"]
 }, {
   id: "electrical",
   label: "Electrical",
-  repairs: ["Outlet not working", "Light switch dead", "Ceiling light flickering", "Outlet sparks", "Breaker keeps tripping", "Ceiling fan install", "Outdoor outlet dead", "Dimmer not working", "Half outlets out", "Thermostat install"]
+  label_es: "Electricidad",
+  repairs: ["Outlet not working", "Light switch dead", "Ceiling light flickering", "Outlet sparks", "Breaker keeps tripping", "Ceiling fan install", "Outdoor outlet dead", "Dimmer not working", "Half outlets out", "Thermostat install"],
+  repairs_es: ["Enchufe no funciona", "Interruptor muerto", "Luz del techo parpadea", "Enchufe echa chispas", "Disyuntor se dispara", "Instalar ventilador", "Enchufe exterior muerto", "Regulador no funciona", "Mitad de enchufes sin luz", "Instalar termostato"]
 }, {
   id: "drywall",
   label: "Drywall",
-  repairs: ["Hole from doorknob", "Small wall crack", "Water stain on ceiling", "Nail pops showing", "Corner bead damaged", "Tape bubbling", "Hole from TV mount", "Large dent in wall", "Drywall near window", "Hairline crack"]
+  label_es: "Tablaroca",
+  repairs: ["Hole from doorknob", "Small wall crack", "Water stain on ceiling", "Nail pops showing", "Corner bead damaged", "Tape bubbling", "Hole from TV mount", "Large dent in wall", "Drywall near window", "Hairline crack"],
+  repairs_es: ["Agujero por pomo", "Grieta peque\u00f1a", "Mancha de agua en techo", "Clavos saltados", "Esquina da\u00f1ada", "Cinta con burbujas", "Agujero por soporte TV", "Abolladura grande", "Tablaroca cerca de ventana", "Grieta fina"]
 }, {
   id: "doors",
   label: "Doors",
-  repairs: ["Front door lock stuck", "Door won't latch", "Deadbolt hard to turn", "Hinge squeaking", "Screen door off track", "New lock install", "Door dragging", "Sliding door stiff", "Knob wobbly", "Side door won't open"]
+  label_es: "Puertas",
+  repairs: ["Front door lock stuck", "Door won't latch", "Deadbolt hard to turn", "Hinge squeaking", "Screen door off track", "New lock install", "Door dragging", "Sliding door stiff", "Knob wobbly", "Side door won't open"],
+  repairs_es: ["Cerradura atascada", "Puerta no cierra", "Cerrojo duro de girar", "Bisagra rechina", "Mosquitera fuera de riel", "Instalar cerradura nueva", "Puerta se arrastra", "Puerta corrediza dura", "Perilla floja", "Puerta lateral no abre"]
 }, {
   id: "appliance",
   label: "Appliances",
-  repairs: ["Disposal jammed", "Dishwasher not draining", "Refrigerator noisy", "Washer leaking", "Dryer slow", "Range hood dead", "Microwave not spinning", "Oven not heating", "Dishwasher dirty", "Ice maker stopped"]
+  label_es: "Electrodom\u00e9sticos",
+  repairs: ["Disposal jammed", "Dishwasher not draining", "Refrigerator noisy", "Washer leaking", "Dryer slow", "Range hood dead", "Microwave not spinning", "Oven not heating", "Dishwasher dirty", "Ice maker stopped"],
+  repairs_es: ["Triturador atascado", "Lavavajillas no drena", "Refrigerador ruidoso", "Lavadora gotea", "Secadora lenta", "Campana extractora muerta", "Microondas no gira", "Horno no calienta", "Lavavajillas sucio", "Hielera no funciona"]
 }, {
   id: "handyman",
   label: "Handyman",
-  repairs: ["Blinds install", "Picture hanging", "Towel bar loose", "Curtain rod bracket", "Cabinet hinge broken", "Drawer stuck", "Furniture assembly", "Weatherstripping", "Caulk re-do", "Baby proofing"]
+  label_es: "Reparaciones",
+  repairs: ["Blinds install", "Picture hanging", "Towel bar loose", "Curtain rod bracket", "Cabinet hinge broken", "Drawer stuck", "Furniture assembly", "Weatherstripping", "Caulk re-do", "Baby proofing"],
+  repairs_es: ["Instalar persianas", "Colgar cuadros", "Toallero flojo", "Soporte de cortina", "Bisagra de gabinete rota", "Caj\u00f3n atascado", "Armar muebles", "Burletes", "Rehacer sellado", "A prueba de beb\u00e9s"]
 }];
 const CITIES = [{
   name: "Austin",
@@ -1128,6 +1269,7 @@ function Nav({
   job,
   goPage
 }) {
+  const { lang, setLang, tr } = useLang();
   const inner = ["confirm", "payment", "pro", "rating", "vendor", "howitworks", "trustsafety", "legal", "commercial", "account", "whyus"].includes(screen);
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1178,7 +1320,7 @@ function Nav({
     strokeWidth: "1.8",
     strokeLinecap: "round",
     strokeLinejoin: "round"
-  })), "Back")), /*#__PURE__*/React.createElement("button", {
+  })), tr("back"))), /*#__PURE__*/React.createElement("button", {
     onClick: onHome,
     style: {
       background: "transparent",
@@ -1228,7 +1370,41 @@ function Nav({
       justifyContent: "flex-end",
       minWidth: 72
     }
-  }, screen === "request" && /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      background: T.white,
+      border: `1px solid ${T.line}`,
+      borderRadius: 100,
+      padding: 2,
+      boxShadow: T.shadow,
+      fontFamily: font
+    },
+    role: "group",
+    "aria-label": "Language selector"
+  }, ["en", "es"].map(function(code){
+    const active = lang === code;
+    return /*#__PURE__*/React.createElement("button", {
+      key: code,
+      onClick: function(){ setLang(code); },
+      "aria-pressed": active,
+      "aria-label": code === "en" ? "English" : "Espa\u00f1ol",
+      style: {
+        background: active ? T.ink : "transparent",
+        color: active ? T.white : T.ink3,
+        border: "none",
+        borderRadius: 100,
+        padding: "3px 9px",
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: 0.5,
+        cursor: "pointer",
+        fontFamily: font,
+        transition: "all 0.15s"
+      }
+    }, code === "en" ? "EN" : "ES");
+  })), screen === "request" && /*#__PURE__*/React.createElement("button", {
     onClick: () => goPage && goPage("whyus"),
     style: {
       background: "transparent",
@@ -1244,7 +1420,7 @@ function Nav({
     },
     onMouseEnter: e => e.currentTarget.style.color = T.red,
     onMouseLeave: e => e.currentTarget.style.color = T.ink3
-  }, "Why Us"), /*#__PURE__*/React.createElement("div", {
+  }, tr("why_us")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
@@ -1284,7 +1460,7 @@ function Nav({
       color: T.ink2,
       letterSpacing: 1
     }
-  }, "LIVE"))));
+  }, tr("live")))));
 }
 function BottomTabs({
   screen,
@@ -1294,6 +1470,7 @@ function BottomTabs({
   onCommercial,
   onAccount
 }) {
+  const { tr } = useLang();
   const MAIN = ["request", "pro", "rating", "commercial", "account"];
   if (!MAIN.includes(screen)) return null;
   const HomeIcon = () => /*#__PURE__*/React.createElement("svg", {
@@ -1368,22 +1545,22 @@ function BottomTabs({
   }));
   const tabs = [{
     id: "request",
-    label: "Home",
+    label: tr("tab_home"),
     Icon: HomeIcon,
     action: onHome
   }, {
     id: "commercial",
-    label: "Commercial",
+    label: tr("tab_commercial"),
     Icon: CommercialIcon,
     action: onCommercial
   }, {
     id: "account",
-    label: "Account",
+    label: tr("tab_account"),
     Icon: AccountIcon,
     action: onAccount
   }, {
     id: "pro",
-    label: "My Job",
+    label: tr("tab_job"),
     Icon: JobIcon,
     action: onJob,
     locked: !hasJob
@@ -1458,7 +1635,8 @@ function AiChatIntake({
   interim,
   loading
 }) {
-  const SYSTEM = `You are QuikFix Intake, a friendly AI dispatcher for BailiwickQuikFix home repairs.
+  const { lang, tr } = useLang();
+  const SYSTEM_EN = `You are QuikFix Intake, a friendly AI dispatcher for BailiwickQuikFix home repairs.
 Your job: have a short, warm conversation to understand what needs fixing, then confirm and submit.
 Keep replies to 1-2 short sentences. Be warm, not robotic.
 Ask ONE clarifying question at a time if needed.
@@ -1466,12 +1644,21 @@ Once you have enough detail (what's broken, roughly where in the home), say exac
 "READY_TO_DISPATCH: [one sentence summary of the repair]"
 That triggers dispatch. Only say it when you're confident.
 Never ask more than 3 follow-up questions total.`;
+  const SYSTEM_ES = `Eres QuikFix Intake, un despachador de IA amigable para reparaciones del hogar de BailiwickQuikFix.
+Tu trabajo: mant\u00e9n una conversaci\u00f3n breve y c\u00e1lida para entender qu\u00e9 necesita reparaci\u00f3n, luego confirma y env\u00eda.
+RESPONDE SIEMPRE EN ESPA\u00d1OL. Mant\u00e9n las respuestas a 1-2 oraciones cortas. S\u00e9 c\u00e1lido, no rob\u00f3tico.
+Haz UNA pregunta aclaratoria a la vez si es necesario.
+Una vez que tengas suficiente detalle (qu\u00e9 est\u00e1 roto, d\u00f3nde en la casa), di exactamente:
+"READY_TO_DISPATCH: [resumen de la reparaci\u00f3n en una oraci\u00f3n, en ingl\u00e9s para el despacho]"
+Esto activa el env\u00edo. S\u00f3lo dilo cuando est\u00e9s seguro.
+Nunca hagas m\u00e1s de 3 preguntas de seguimiento en total.`;
+  const SYSTEM = lang === "es" ? SYSTEM_ES : SYSTEM_EN;
   const isEmpty = aiMsgs.length === 0;
   useEffect(() => {
     if (isEmpty) {
       setAiMsgs([{
         role: "assistant",
-        text: "Hi! What needs fixing today? Just tell me in your own words — I'll take it from there.",
+        text: tr("ai_greeting"),
         ts: "Now"
       }]);
     }
@@ -1512,12 +1699,12 @@ Never ask more than 3 follow-up questions total.`;
         })
       });
       const data = await res.json();
-      const reply = data.content?.map(b => b.text || "").join("") || "Can you tell me a bit more about the issue?";
+      const reply = data.content?.map(b => b.text || "").join("") || (lang === "es" ? "\u00bfPuedes darme un poco m\u00e1s de detalle?" : "Can you tell me a bit more about the issue?");
       if (reply.includes("READY_TO_DISPATCH:")) {
         const transcript = reply.split("READY_TO_DISPATCH:")[1].trim();
         setAiMsgs(prev => [...prev, {
           role: "assistant",
-          text: `Got it — I have everything I need. Getting your price now…`,
+          text: tr("ai_dispatch_ready"),
           ts: "Now"
         }]);
         setAiLoading(false);
@@ -1533,7 +1720,7 @@ Never ask more than 3 follow-up questions total.`;
     } catch (e) {
       setAiMsgs(prev => [...prev, {
         role: "assistant",
-        text: "Something went wrong. Can you type what needs fixing?",
+        text: tr("ai_error"),
         ts: "Now"
       }]);
       setAiLoading(false);
@@ -1805,14 +1992,14 @@ Never ask more than 3 follow-up questions total.`;
       marginBottom: 8,
       textAlign: "center"
     }
-  }, "Or tap a common issue:"), /*#__PURE__*/React.createElement("div", {
+  }, tr("or_tap_common")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexWrap: "wrap",
       gap: 7,
       justifyContent: "center"
     }
-  }, ["My faucet won't stop dripping", "Outlet stopped working", "Toilet keeps running", "Garbage disposal jammed", "Front door lock is stuck", "Drywall hole in wall"].map(q => /*#__PURE__*/React.createElement("button", {
+  }, [tr("common_1"), tr("common_2"), tr("common_3"), tr("common_4"), tr("common_5"), tr("common_6")].map(q => /*#__PURE__*/React.createElement("button", {
     key: q,
     onClick: () => sendMessage(q),
     style: {
@@ -1848,6 +2035,7 @@ function RequestScreen({
   onPrice,
   goPage
 }) {
+  const { lang, tr } = useLang();
   const [zip, setZip] = useState("");
   const [zipOk, setZipOk] = useState(false);
   const [zipErr, setZipErr] = useState("");
@@ -1874,7 +2062,7 @@ function RequestScreen({
       if (COVERED_ZIPS.includes(z) || demo) {
         setZipOk(true);
         setZipErr("");
-      } else setZipErr("Not in our service area yet.");
+      } else setZipErr(tr("zip_err_area"));
     } else {
       setZipOk(false);
       setZipErr("");
@@ -1886,7 +2074,7 @@ function RequestScreen({
     // No speech recognition support at all
     if (!SR) {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      setErr(isIOS ? "Voice requires Safari on iOS 14.5+ served over HTTPS." : "Voice not supported. Try Chrome, Edge, or Safari.");
+      setErr(isIOS ? tr("voice_ios_err") : tr("voice_unsupported"));
       return;
     }
 
@@ -1894,14 +2082,14 @@ function RequestScreen({
     const proto = location.protocol;
     const host = location.hostname;
     if (proto !== "https:" && host !== "localhost" && host !== "127.0.0.1") {
-      setErr("Voice input needs HTTPS. Use the text box or category list below.");
+      setErr(tr("voice_https"));
       return;
     }
     setErr("");
     setMic(true); // show listening state immediately so user gets feedback
 
     const r = new SR();
-    r.lang = "en-US";
+    r.lang = lang === "es" ? "es-US" : "en-US";
     r.continuous = false;
     r.interimResults = true;
     r.maxAlternatives = 1;
@@ -1924,21 +2112,21 @@ function RequestScreen({
     r.onerror = e => {
       setMic(false);
       const msgs = {
-        "not-allowed": "Mic blocked — allow access in your browser/device settings.",
-        "permission-denied": "Mic blocked — allow access in your browser/device settings.",
-        "no-speech": "Nothing heard. Tap again and speak clearly.",
-        "audio-capture": "No microphone found. Type your repair instead.",
-        "network": "Network error — check connection or type below.",
+        "not-allowed": tr("mic_blocked"),
+        "permission-denied": tr("mic_blocked"),
+        "no-speech": tr("no_speech"),
+        "audio-capture": tr("audio_capture"),
+        "network": lang === "es" ? "Error de red \u2014 verifica la conexi\u00f3n o escribe abajo." : "Network error — check connection or type below.",
         "aborted": "" // user stopped it, no message needed
       };
-      const msg = msgs[e.error] ?? "Mic error. Type your repair below.";
+      const msg = msgs[e.error] ?? tr("mic_error");
       if (msg) setErr(msg);
     };
     try {
       r.start();
     } catch (ex) {
       setMic(false);
-      setErr("Couldn't start mic. Type your repair below.");
+      setErr(tr("mic_start_fail"));
     }
   }
   function stopMic() {
@@ -2065,7 +2253,7 @@ function RequestScreen({
       color: T.ink2,
       letterSpacing: 0.3
     }
-  }, "Pros standing by now")), /*#__PURE__*/React.createElement("h1", {
+  }, tr("pros_standing_by"))), /*#__PURE__*/React.createElement("h1", {
     style: {
       fontSize: 52,
       fontWeight: 900,
@@ -2074,7 +2262,7 @@ function RequestScreen({
       margin: "0 0 14px",
       lineHeight: 1.0
     }
-  }, "What needs", /*#__PURE__*/React.createElement("br", null), "fixing?"), /*#__PURE__*/React.createElement("p", {
+  }, tr("what_needs_1"), /*#__PURE__*/React.createElement("br", null), tr("what_needs_2")), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 16,
       color: T.ink3,
@@ -2082,7 +2270,7 @@ function RequestScreen({
       fontWeight: 400,
       lineHeight: 1.6
     }
-  }, "A vetted pro at your door", /*#__PURE__*/React.createElement("br", null), "in under an hour."), /*#__PURE__*/React.createElement("p", {
+  }, tr("hero_sub_1"), /*#__PURE__*/React.createElement("br", null), tr("hero_sub_2")), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 12,
       color: T.ink3,
@@ -2091,7 +2279,7 @@ function RequestScreen({
       fontWeight: 400,
       letterSpacing: 0.2
     }
-  }, "Our AI matches you with a certified pro in seconds.")), !zipOk && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, tr("hero_ai"))), !zipOk && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 16,
       position: "relative"
@@ -2107,14 +2295,14 @@ function RequestScreen({
       marginBottom: 6,
       paddingLeft: 2
     }
-  }, "ZIP Code"), /*#__PURE__*/React.createElement("div", {
+  }, tr("zip_code")), /*#__PURE__*/React.createElement("div", {
     style: {
       position: "relative"
     }
   }, /*#__PURE__*/React.createElement("input", {
     value: zip,
     onChange: e => checkZip(e.target.value),
-    placeholder: "e.g. 78701",
+    placeholder: tr("zip_placeholder"),
     maxLength: 5,
     style: {
       width: "100%",
@@ -2212,7 +2400,7 @@ function RequestScreen({
       textAlign: "center",
       marginBottom: 14
     }
-  }, "Or tap your city"), /*#__PURE__*/React.createElement("div", {
+  }, tr("or_tap_city")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
@@ -2306,7 +2494,7 @@ function RequestScreen({
       textUnderlineOffset: 3,
       padding: "4px 8px"
     }
-  }, "Demo mode") : /*#__PURE__*/React.createElement("div", {
+  }, tr("demo_mode")) : /*#__PURE__*/React.createElement("div", {
     style: {
       display: "inline-flex",
       alignItems: "center",
@@ -2325,7 +2513,7 @@ function RequestScreen({
       borderRadius: "50%",
       background: T.red
     }
-  }), "Demo \u00b7 any ZIP \u00b7 MGE visible", /*#__PURE__*/React.createElement("button", {
+  }), tr("demo_active"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setDemo(false),
     style: {
       background: "transparent",
@@ -2375,7 +2563,7 @@ function RequestScreen({
     strokeWidth: "1.8",
     strokeLinecap: "round",
     strokeLinejoin: "round"
-  })), "Change location"), mode === "ai" && !aiDone && /*#__PURE__*/React.createElement(AiChatIntake, {
+  })), tr("change_location")), mode === "ai" && !aiDone && /*#__PURE__*/React.createElement(AiChatIntake, {
     zip: zip,
     aiMsgs: aiMsgs,
     setAiMsgs: setAiMsgs,
@@ -2443,12 +2631,12 @@ function RequestScreen({
       fontWeight: 700,
       color: T.ink
     }
-  }, "Prefer to just describe it?"), /*#__PURE__*/React.createElement("div", {
+  }, tr("prefer_describe")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: T.ink3
     }
-  }, "Chat with our AI dispatcher instead"))), /*#__PURE__*/React.createElement("button", {
+  }, tr("chat_ai_sub")))), /*#__PURE__*/React.createElement("button", {
     onClick: () => setMode("ai"),
     style: {
       background: T.ink,
@@ -2464,7 +2652,7 @@ function RequestScreen({
       flexShrink: 0,
       boxShadow: "0 2px 10px rgba(0,0,0,0.15)"
     }
-  }, "Chat with AI \u2192")), /*#__PURE__*/React.createElement("div", {
+  }, tr("chat_with_ai"))), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
       marginBottom: 28
@@ -2477,7 +2665,7 @@ function RequestScreen({
       marginBottom: 16,
       letterSpacing: 0.2
     }
-  }, mic ? "Listening… tap to stop" : loading ? "Getting your price…" : "Tap the button and describe your repair"), /*#__PURE__*/React.createElement("button", {
+  }, mic ? tr("mic_listening") : loading ? tr("mic_loading") : tr("mic_prompt")), /*#__PURE__*/React.createElement("button", {
     onClick: mic ? stopMic : startMic,
     disabled: loading,
     "aria-label": mic ? "Stop recording" : "Start voice input — tap and speak your repair",
@@ -2543,7 +2731,7 @@ function RequestScreen({
       color: "rgba(255,255,255,0.7)",
       letterSpacing: 0.8
     }
-  }, "TAP TO STOP")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("svg", {
+  }, tr("mic_tap_stop"))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("svg", {
     width: "30",
     height: "30",
     viewBox: "0 0 24 24",
@@ -2567,7 +2755,7 @@ function RequestScreen({
       color: "rgba(255,255,255,0.65)",
       letterSpacing: 0.8
     }
-  }, "SPEAK"))), /*#__PURE__*/React.createElement("div", {
+  }, tr("mic_speak")))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "inline-flex",
       alignItems: "center",
@@ -2620,7 +2808,7 @@ function RequestScreen({
       color: T.ink3,
       fontStyle: "italic"
     }
-  }, "Speak clearly into your microphone\u2026")), !mic && !loading && /*#__PURE__*/React.createElement("p", {
+  }, tr("mic_speak_clearly"))), !mic && !loading && /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 11,
       color: T.ink3,
@@ -2628,7 +2816,7 @@ function RequestScreen({
       lineHeight: 1.6,
       opacity: 0.7
     }
-  }, "Example: \"My faucet won't stop dripping\" or \"Outlet stopped working\"")), /*#__PURE__*/React.createElement("p", {
+  }, tr("mic_example"))), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 11,
       fontWeight: 700,
@@ -2636,7 +2824,7 @@ function RequestScreen({
       letterSpacing: 1.5,
       marginBottom: 10
     }
-  }, "OR BROWSE BY CATEGORY"), /*#__PURE__*/React.createElement("div", {
+  }, tr("or_browse")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
@@ -2659,7 +2847,7 @@ function RequestScreen({
       border: `1.5px solid ${selCat === cat.id ? T.ink : T.line}`,
       boxShadow: T.shadow
     }
-  }, cat.label))), activeCat && /*#__PURE__*/React.createElement("div", {
+  }, (lang === "es" && cat.label_es) ? cat.label_es : cat.label))), activeCat && /*#__PURE__*/React.createElement("div", {
     style: {
       background: T.white,
       borderRadius: 20,
@@ -2682,13 +2870,14 @@ function RequestScreen({
       fontWeight: 700,
       color: T.ink
     }
-  }, activeCat.label), /*#__PURE__*/React.createElement("span", {
+  }, (lang === "es" && activeCat.label_es) ? activeCat.label_es : activeCat.label), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 11,
       color: T.ink3
     }
-  }, "select all that apply")), activeCat.repairs.map((r, i) => {
+  }, tr("select_apply"))), activeCat.repairs.map((r, i) => {
     const on = picks.includes(r);
+    const display = (lang === "es" && activeCat.repairs_es && activeCat.repairs_es[i]) ? activeCat.repairs_es[i] : r;
     return /*#__PURE__*/React.createElement("button", {
       key: i,
       onClick: () => togglePick(r),
@@ -2736,7 +2925,7 @@ function RequestScreen({
         color: on ? T.ink : T.ink2,
         fontWeight: on ? 600 : 400
       }
-    }, r));
+    }, display));
   }), picks.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "12px 20px",
@@ -2752,7 +2941,7 @@ function RequestScreen({
       fontWeight: 600,
       color: T.ink
     }
-  }, picks.length, " selected"), /*#__PURE__*/React.createElement("button", {
+  }, picks.length, " ", tr("selected")), /*#__PURE__*/React.createElement("button", {
     onClick: () => setPicks([]),
     style: {
       background: "transparent",
@@ -2762,7 +2951,7 @@ function RequestScreen({
       cursor: "pointer",
       fontFamily: font
     }
-  }, "Clear"))), /*#__PURE__*/React.createElement("div", {
+  }, tr("clear")))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 14
     }
@@ -2772,7 +2961,7 @@ function RequestScreen({
     onKeyDown: e => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run();
     },
-    placeholder: "Or describe it in your own words\u2026",
+    placeholder: tr("describe_words"),
     rows: 3,
     style: {
       width: "100%",
@@ -2849,10 +3038,10 @@ function RequestScreen({
     ),
     /*#__PURE__*/React.createElement("p", {
       style: { fontSize: 15, fontWeight: 700, color: T.ink, marginBottom: 4 }
-    }, certifying ? "Certifying with MGE\u2026" : "Analyzing your request\u2026"),
+    }, certifying ? tr("certifying") : tr("analyzing")),
     /*#__PURE__*/React.createElement("p", {
       style: { fontSize: 13, color: T.ink3 }
-    }, certifying ? "FohBoh Trust Firewall \u00b7 evaluating blocking conditions" : "Classifying your request \u00b7 MGE catalog will price"),
+    }, certifying ? tr("firewall_sub") : tr("classifying_sub")),
     /* Demo-only: expanded view of what the MGE is doing */
     certifying && demo && /*#__PURE__*/React.createElement("div", {
       style: {
@@ -2884,7 +3073,7 @@ function RequestScreen({
       lineHeight: 1.6,
       marginTop: 8
     }
-  }, "QuikFix arrival <60 min for eligible jobs \xB7 covered ZIP codes \xB7 7am\u20139pm"), /*#__PURE__*/React.createElement("footer", {
+  }, tr("quikfix_arrival")), /*#__PURE__*/React.createElement("footer", {
     style: {
       marginTop: 48,
       paddingTop: 32,
@@ -7866,6 +8055,9 @@ function App() {
   // info pages + chat
   const [prevScreen, setPrevScreen] = useState("request");
   const [chatOpen, setChatOpen] = useState(false);
+  // language
+  const [lang, setLang] = useState("en");
+  const tr = React.useCallback(function(k){ return (TRANSLATIONS[lang] && TRANSLATIONS[lang][k]) || TRANSLATIONS.en[k] || k; }, [lang]);
   function goCommercial() {
     setScreen("commercial");
   }
@@ -7928,7 +8120,9 @@ function App() {
     if (screen === "account") backFromPage();
     if (screen === "whyus") backFromPage();
   }
-  return /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement(LangContext.Provider, {
+    value: { lang: lang, setLang: setLang, tr: tr }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
       background: T.bg,
@@ -8041,7 +8235,7 @@ function App() {
         *{box-sizing:border-box;margin:0;padding:0;}
         input::placeholder,textarea::placeholder{color:#C0C0C0;}
         ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#E0E0E0;border-radius:2px;}
-      `));
+      `)));
 }
 
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
